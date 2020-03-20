@@ -1,4 +1,4 @@
 #import <Flutter/Flutter.h>
 
-@interface FlutterAmazonFreertosPlugin : NSObject<FlutterPlugin>
+@interface FlutterAmazonFreeRTOSPlugin : NSObject <FlutterPlugin>
 @end

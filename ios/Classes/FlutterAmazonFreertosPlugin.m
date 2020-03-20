@@ -1,4 +1,4 @@
-#import "FlutterAmazonFreertosPlugin.h"
+#import "FlutterAmazonFreeRTOSPlugin.h"
 #if __has_include(<flutter_amazon_freertos_plugin/flutter_amazon_freertos_plugin-Swift.h>)
 #import <flutter_amazon_freertos_plugin/flutter_amazon_freertos_plugin-Swift.h>
 #else
@@ -8,8 +8,8 @@
 #import "flutter_amazon_freertos_plugin-Swift.h"
 #endif
 
-@implementation FlutterAmazonFreertosPlugin
+@implementation FlutterAmazonFreeRTOSPlugin
 + (void)registerWithRegistrar:(NSObject<FlutterPluginRegistrar>*)registrar {
-  [SwiftFlutterAmazonFreertosPlugin registerWithRegistrar:registrar];
+  [SwiftFlutterAmazonFreeRTOSPlugin registerWithRegistrar:registrar];
 }
 @end
