@@ -2,6 +2,12 @@
 <Workspace
    version = "1.0">
    <FileRef
+      location = "group:/Users/sri/Documents/Work/Projects/flutter_amazon_freertos_plugin/example/ios/Runner.xcodeproj">
+   </FileRef>
+   <FileRef
       location = "group:Runner.xcodeproj">
+   </FileRef>
+   <FileRef
+      location = "group:Pods/Pods.xcodeproj">
    </FileRef>
 </Workspace>
