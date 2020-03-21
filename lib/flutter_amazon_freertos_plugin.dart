@@ -1,13 +1,8 @@
-import 'dart:async';
+library flutter_amazon_freertos_plugin;
 
-import 'package:flutter/services.dart';
+import "dart:async";
+import "package:flutter/services.dart";
+import "package:logging/logging.dart";
+import "package:plugin_scaffold/plugin_scaffold.dart";
 
-class FlutterAmazonFreeRTOSPlugin {
-  static const MethodChannel _channel =
-      const MethodChannel('flutter_amazon_freertos_plugin');
-
-  static Future<String> get platformVersion async {
-    final String version = await _channel.invokeMethod('getPlatformVersion');
-    return version;
-  }
-}
+part "src/flutter_amazon_freertos_plugin.dart";
