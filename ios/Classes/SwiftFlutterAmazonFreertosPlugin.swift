@@ -3,17 +3,17 @@ import UIKit
 import plugin_scaffold
 import CoreBluetooth
 
+
 let pkgName = "nl.qwic.plugins.flutter_amazon_freertos_plugin"
 
 public class SwiftFlutterAmazonFreeRTOSPlugin: NSObject, FlutterPlugin {
     public static func register(with registrar: FlutterPluginRegistrar) {
         let plugin = FreeRTOSBluetooth()
-        _ = createPluginScaffold(
+        let channel = createPluginScaffold(
             messenger: registrar.messenger(),
             channelName: pkgName,
             methodMap: [
-                "isAvailable": plugin.isAvailable,
-                "isOn": plugin.isOn,
+                "bluetoothState": plugin.bluetoothState,
                 "startScanning": plugin.startScanning,
                 "stopScanning": plugin.stopScanning,
                 "connectToDevice": plugin.connectToDevice,
@@ -27,7 +27,14 @@ public class SwiftFlutterAmazonFreeRTOSPlugin: NSObject, FlutterPlugin {
                 "setNotification": plugin.setNotification,
                 "getMtu": plugin.getMtu,
                 "setMtu": plugin.setMtu
-        ])
+            ]
+        )
+        
+        // FreeRTOS BLE Central Manager didUpdateState
+        NotificationCenter.default.addObserver(forName: .afrCentralManagerDidUpdateState, object: nil, queue: nil) { notification in
+            let state = dumpBluetoothState(plugin.awsFreeRTOSManager.central?.state ?? CBManagerState.unknown)
+            channel.invokeMethod("bluetoothStateChangeCallback", arguments: state)
+            print("invoke channel method", state)
+        }
     }
-
 }

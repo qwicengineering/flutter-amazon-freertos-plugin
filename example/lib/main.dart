@@ -12,22 +12,40 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> {
-  String _platformVersion = 'Unknown';
+  BluetoothState _bluetoothState = BluetoothState.UNKNOWN;
+  FlutterAmazonFreeRTOSPlugin amazonFreeRTOSPlugin = FlutterAmazonFreeRTOSPlugin.instance;
 
   @override
   void initState() {
     super.initState();
-    initPlatformState();
+    getBluetoothState();
+
+    // register callback for bluetoothStateChange
+    amazonFreeRTOSPlugin.registerBluetoothStateChangeCallback((bluetoothState) {
+      if(!mounted) return;
+
+      setState(() {
+        _bluetoothState = bluetoothState;
+      });
+    });
   }
 
-  // Platform messages are asynchronous, so we initialize in an async method.
-  Future<void> initPlatformState() async {
-    String platformVersion;
+  @override
+  void dispose() {
+    amazonFreeRTOSPlugin.registerBluetoothStateChangeCallback(null);
+    super.dispose();
+  }
+
+  Future<void> getBluetoothState() async {
+    BluetoothState bluetoothState;
     // Platform messages may fail, so we use a try/catch PlatformException.
     try {
-      platformVersion = await FlutterAmazonFreeRTOSPlugin.platformVersion;
-    } on PlatformException {
-      platformVersion = 'Failed to get platform version.';
+      bluetoothState = await amazonFreeRTOSPlugin.bluetoothState;
+    } on PlatformException catch (e, trace) {
+      print("failed to get bluetooth state");
+      print(e);
+      print(trace);
+      return;
     }
 
     // If the widget was removed from the tree while the asynchronous platform
@@ -36,7 +54,7 @@ class _MyAppState extends State<MyApp> {
     if (!mounted) return;
 
     setState(() {
-      _platformVersion = platformVersion;
+      _bluetoothState = bluetoothState;
     });
   }
 
@@ -45,10 +63,10 @@ class _MyAppState extends State<MyApp> {
     return MaterialApp(
       home: Scaffold(
         appBar: AppBar(
-          title: const Text('Plugin example app'),
+          title: const Text("Amazon FreeRTOS Example"),
         ),
         body: Center(
-          child: Text('Running on: $_platformVersion\n'),
+          child: Text('Bluetooth state: $_bluetoothState\n'),
         ),
       ),
     );

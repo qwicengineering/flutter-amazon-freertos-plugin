@@ -1,15 +1,16 @@
-import 'package:flutter/services.dart';
-import 'package:flutter_test/flutter_test.dart';
-import 'package:flutter_amazon_freertos_plugin/flutter_amazon_freertos_plugin.dart';
+import "package:flutter/services.dart";
+import "package:flutter_test/flutter_test.dart";
+import "package:flutter_amazon_freertos_plugin/flutter_amazon_freertos_plugin.dart";
 
 void main() {
-  const MethodChannel channel = MethodChannel('flutter_amazon_freertos_plugin');
+  const MethodChannel channel = MethodChannel("nl.qwic.plugins.flutter_amazon_freertos_plugin");
+  FlutterAmazonFreeRTOSPlugin amazonFreeRTOSPlugin = FlutterAmazonFreeRTOSPlugin.instance;
 
   TestWidgetsFlutterBinding.ensureInitialized();
 
   setUp(() {
     channel.setMockMethodCallHandler((MethodCall methodCall) async {
-      return '42';
+      return "42";
     });
   });
 
@@ -17,7 +18,7 @@ void main() {
     channel.setMockMethodCallHandler(null);
   });
 
-  test('getPlatformVersion', () async {
-    expect(await FlutterAmazonFreertosPlugin.platformVersion, '42');
+  test("getBluetoothState", () async {
+    expect(await amazonFreeRTOSPlugin.bluetoothState, "42");
   });
 }

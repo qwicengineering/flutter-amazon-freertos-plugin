@@ -7,12 +7,9 @@ import CoreBluetooth
 class FreeRTOSBluetooth {
     let awsFreeRTOSManager = AmazonFreeRTOSManager.shared
     
-    func isAvailable(call: FlutterMethodCall, result: @escaping FlutterResult) {
-        result("is bluetooth available")
-    }
-
-    func isOn(call: FlutterMethodCall, result: @escaping FlutterResult) {
-        result("is bluetooth on")
+    func bluetoothState(call: FlutterMethodCall, result: @escaping FlutterResult) {
+        let state = dumpBluetoothState(awsFreeRTOSManager.central?.state ?? CBManagerState.unknown)
+        result(state)
     }
     
     func startScanning(call: FlutterMethodCall, result: @escaping FlutterResult) {
