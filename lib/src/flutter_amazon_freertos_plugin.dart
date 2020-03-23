@@ -29,4 +29,16 @@ class FlutterAmazonFreeRTOSPlugin {
         });
     }
 
+    Future<void> startScanForDevices() async {
+        await channel.invokeMethod("startScanForDevices");
+    }
+
+    Future<void> stopScanForDevices() async {
+        await channel.invokeMethod("stopScanForDevices");
+    }
+
+    Future<void> rescanForDevices() async {
+        await channel.invokeMethod("rescanForDevices");
+    }
+
 }

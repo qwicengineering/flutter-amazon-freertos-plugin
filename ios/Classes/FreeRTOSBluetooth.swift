@@ -12,12 +12,22 @@ class FreeRTOSBluetooth {
         result(state)
     }
     
-    func startScanning(call: FlutterMethodCall, result: @escaping FlutterResult) {
-        result(FlutterMethodNotImplemented)
+    // TODO: Do we need to look for exceptions?
+    func startScanForDevices(call: FlutterMethodCall, result: @escaping FlutterResult) {
+        awsFreeRTOSManager.startScanForDevices()
+        result(nil)
     }
     
-    func stopScanning(call: FlutterMethodCall, result: @escaping FlutterResult) {
-        result(FlutterMethodNotImplemented)
+    // TODO: Do we need to look for exceptions?
+    func stopScanForDevices(call: FlutterMethodCall, result: @escaping FlutterResult) {
+        awsFreeRTOSManager.stopScanForDevices()
+        result(nil)
+    }
+    
+    // TODO: Do we need to look for exceptions?
+    func rescanForDevices(call: FlutterMethodCall, result: @escaping FlutterResult) {
+        awsFreeRTOSManager.rescanForDevices()
+        result(nil)
     }
     
     func connectToDevice(call: FlutterMethodCall, result: @escaping FlutterResult) {

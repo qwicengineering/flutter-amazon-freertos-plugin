@@ -58,6 +58,33 @@ class _MyAppState extends State<MyApp> {
     });
   }
 
+  Future<void> startScanning() async {
+    try {
+      amazonFreeRTOSPlugin.startScanForDevices();
+    } on PlatformException catch (e) {
+      print("Failed to start scan");
+      print(e);
+    }
+  }
+
+  Future<void> stopScanning() async {
+    try {
+      amazonFreeRTOSPlugin.stopScanForDevices();
+    } on PlatformException catch (e) {
+      print("Failed to stop scan");
+      print(e);
+    }
+  }
+
+  Future<void> rescan() async {
+    try {
+      amazonFreeRTOSPlugin.rescanForDevices();
+    } on PlatformException catch (e) {
+      print("Failed to rescan");
+      print(e);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(

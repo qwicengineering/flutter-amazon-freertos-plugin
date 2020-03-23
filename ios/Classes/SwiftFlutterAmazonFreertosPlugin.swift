@@ -14,8 +14,9 @@ public class SwiftFlutterAmazonFreeRTOSPlugin: NSObject, FlutterPlugin {
             channelName: pkgName,
             methodMap: [
                 "bluetoothState": plugin.bluetoothState,
-                "startScanning": plugin.startScanning,
-                "stopScanning": plugin.stopScanning,
+                "startScanForDevices": plugin.startScanForDevices,
+                "stopScanForDevices": plugin.stopScanForDevices,
+                "rescanForDevices": plugin.rescanForDevices,
                 "connectToDevice": plugin.connectToDevice,
                 "disconnectFromDevice": plugin.disconnectFromDevice,
                 "discoverServices": plugin.discoverServices,
@@ -34,7 +35,6 @@ public class SwiftFlutterAmazonFreeRTOSPlugin: NSObject, FlutterPlugin {
         NotificationCenter.default.addObserver(forName: .afrCentralManagerDidUpdateState, object: nil, queue: nil) { notification in
             let state = dumpBluetoothState(plugin.awsFreeRTOSManager.central?.state ?? CBManagerState.unknown)
             channel.invokeMethod("bluetoothStateChangeCallback", arguments: state)
-            print("invoke channel method", state)
         }
     }
 }
