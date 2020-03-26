@@ -30,6 +30,12 @@ class FreeRTOSBluetooth {
         result(nil)
     }
     
+    func discoverDevicesOnListen(id: Int, args: Any?, sink: @escaping FlutterEventSink) {
+        for (_, value) in awsFreeRTOSManager.devices {
+           sink(dumpFreeRTOSDeviceInfo(value))
+        }
+    }
+    
     func connectToDevice(call: FlutterMethodCall, result: @escaping FlutterResult) {
         result(FlutterMethodNotImplemented)
     }

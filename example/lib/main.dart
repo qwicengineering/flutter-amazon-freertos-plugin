@@ -90,10 +90,29 @@ class _MyAppState extends State<MyApp> {
     return MaterialApp(
       home: Scaffold(
         appBar: AppBar(
-          title: const Text("Amazon FreeRTOS Example"),
+          title: const Text("Amazon FreeRTOS BLE"),
+          actions: <Widget>[
+            IconButton(
+              icon: Icon(Icons.refresh),
+              tooltip: "Rescan for devices",
+              onPressed: rescan,
+            )
+          ],
         ),
-        body: Center(
-          child: Text('Bluetooth state: $_bluetoothState\n'),
+        body: Container(
+          padding: EdgeInsets.all(10),
+          child: Column(
+            children: <Widget>[
+              Text('Bluetooth state: $_bluetoothState\n'),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                children: <Widget>[
+                  OutlineButton(child: Text("Start Scan"), onPressed: startScanning),
+                  OutlineButton(child: Text("Stop Scan"), onPressed: stopScanning)
+                ]
+              )
+            ],
+          ),
         ),
       ),
     );
