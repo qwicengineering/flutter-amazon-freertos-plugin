@@ -1,6 +1,8 @@
 package nl.qwic.plugins.flutter_amazon_freertos_plugin
 
 import androidx.annotation.NonNull;
+import com.pycampers.plugin_scaffold.buildMethodMap
+import com.pycampers.plugin_scaffold.createPluginScaffold
 import io.flutter.embedding.engine.plugins.FlutterPlugin
 import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
@@ -11,8 +13,37 @@ import io.flutter.plugin.common.PluginRegistry.Registrar
 /** FlutterAmazonFreertosPlugin */
 public class FlutterAmazonFreeRTOSPlugin: FlutterPlugin, MethodCallHandler {
   override fun onAttachedToEngine(@NonNull flutterPluginBinding: FlutterPlugin.FlutterPluginBinding) {
-    val channel = MethodChannel(flutterPluginBinding.getFlutterEngine().getDartExecutor(), "flutter_amazon_freertos_plugin")
-    channel.setMethodCallHandler(FlutterAmazonFreeRTOSPlugin());
+//    val channel = MethodChannel(flutterPluginBinding.getFlutterEngine().getDartExecutor(), "nl.qwic.plugins.flutter_amazon_freertos_plugin")
+//    channel.setMethodCallHandler(FlutterAmazonFreeRTOSPlugin());
+    val plugin = FreeRTOSBluetooth(flutterPluginBinding.applicationContext)
+
+
+    /*
+    * Methods in ios
+    * methodMap: [
+                "bluetoothState": plugin.bluetoothState,
+                "startScanForDevices": plugin.startScanForDevices,
+                "stopScanForDevices": plugin.stopScanForDevices,
+                "rescanForDevices": plugin.rescanForDevices,
+                "connectToDevice": plugin.connectToDevice,
+                "disconnectFromDevice": plugin.disconnectFromDevice,
+                "discoverServices": plugin.discoverServices,
+                "listServices": plugin.listServices,
+                "readCharacteristic": plugin.readCharacteristic,
+                "readDescriptor": plugin.readDescriptor,
+                "writeDescriptor": plugin.writeDescriptor,
+                "writeCharacteristic": plugin.writeCharacteristic,
+                "setNotification": plugin.setNotification,
+                "getMtu": plugin.getMtu,
+                "setMtu": plugin.setMtu
+            ]
+            *
+    * */
+    createPluginScaffold(
+            flutterPluginBinding.binaryMessenger,
+            "nl.qwic.plugins.flutter_amazon_freertos_plugin",
+            plugin
+    )
   }
 
   // This static function is optional and equivalent to onAttachedToEngine. It supports the old
@@ -27,16 +58,26 @@ public class FlutterAmazonFreeRTOSPlugin: FlutterPlugin, MethodCallHandler {
   companion object {
     @JvmStatic
     fun registerWith(registrar: Registrar) {
-      val channel = MethodChannel(registrar.messenger(), "flutter_amazon_freertos_plugin")
-      channel.setMethodCallHandler(FlutterAmazonFreeRTOSPlugin())
+//      val channel = MethodChannel(registrar.messenger(), "nl.qwic.plugins.flutter_amazon_freertos_plugin")
+//      channel.setMethodCallHandler(FlutterAmazonFreeRTOSPlugin())
+      val plugin = FreeRTOSBluetooth(registrar.context());
+      createPluginScaffold(
+              registrar.messenger(),
+              "nl.qwic.plugins.flutter_amazon_freertos_plugin",
+              plugin
+      )
     }
   }
 
   override fun onMethodCall(@NonNull call: MethodCall, @NonNull result: Result) {
-    if (call.method == "getPlatformVersion") {
-      result.success("Android ${android.os.Build.VERSION.RELEASE}")
-    } else {
-      result.notImplemented()
+    when (call.method) {
+        "getPlatformVersion" -> {
+          result.success("Android ${android.os.Build.VERSION.RELEASE}")
+        }
+        else -> {
+          print("no impl");
+          result.notImplemented()
+        }
     }
   }
 

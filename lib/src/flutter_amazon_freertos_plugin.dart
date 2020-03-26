@@ -3,42 +3,43 @@ part of flutter_amazon_freertos_plugin;
 typedef OnBluetoothStateChange(BluetoothState bluetoothState);
 
 class FlutterAmazonFreeRTOSPlugin {
-    static final logger = Logger("FlutterAmazonFreeRTOSPlugin");
+  static final logger = Logger("FlutterAmazonFreeRTOSPlugin");
 
-    static const pkgName = "nl.qwic.plugins.flutter_amazon_freertos_plugin";
-    final MethodChannel channel = const MethodChannel(pkgName);
+  static const pkgName = "nl.qwic.plugins.flutter_amazon_freertos_plugin";
+  final MethodChannel channel = const MethodChannel(pkgName);
 
-    static FlutterAmazonFreeRTOSPlugin _instance = new FlutterAmazonFreeRTOSPlugin();
-    static FlutterAmazonFreeRTOSPlugin get instance => _instance;
+  static FlutterAmazonFreeRTOSPlugin _instance =
+      new FlutterAmazonFreeRTOSPlugin();
+  static FlutterAmazonFreeRTOSPlugin get instance => _instance;
 
-    Future<BluetoothState> get bluetoothState async {
-        final int bluetoothState = await channel.invokeMethod("bluetoothState");
-        return BluetoothState.values[bluetoothState];
+  Future<BluetoothState> get bluetoothState async {
+    final int bluetoothState = await channel.invokeMethod("bluetoothState");
+    return BluetoothState.values[bluetoothState];
+  }
+
+  void registerBluetoothStateChangeCallback(
+      OnBluetoothStateChange onBluetoothStateChange) {
+    const _method = "bluetoothStateChangeCallback";
+
+    if (onBluetoothStateChange == null) {
+      PluginScaffold.removeCallHandlersWithName(channel, _method);
+      return;
     }
 
-    void registerBluetoothStateChangeCallback(OnBluetoothStateChange onBluetoothStateChange) {
-        const _method = "bluetoothStateChangeCallback";
+    PluginScaffold.setCallHandler(channel, _method, (bluetoothState) {
+      onBluetoothStateChange(BluetoothState.values[bluetoothState]);
+    });
+  }
 
-        if (onBluetoothStateChange == null) {
-            PluginScaffold.removeCallHandlersWithName(channel, _method);
-            return;
-        }
+  Future<void> startScanForDevices() async {
+    await channel.invokeMethod("startScanForDevices");
+  }
 
-        PluginScaffold.setCallHandler(channel, _method, (bluetoothState) {
-            onBluetoothStateChange(BluetoothState.values[bluetoothState]);
-        });
-    }
+  Future<void> stopScanForDevices() async {
+    await channel.invokeMethod("stopScanForDevices");
+  }
 
-    Future<void> startScanForDevices() async {
-        await channel.invokeMethod("startScanForDevices");
-    }
-
-    Future<void> stopScanForDevices() async {
-        await channel.invokeMethod("stopScanForDevices");
-    }
-
-    Future<void> rescanForDevices() async {
-        await channel.invokeMethod("rescanForDevices");
-    }
-
+  Future<void> rescanForDevices() async {
+    await channel.invokeMethod("rescanForDevices");
+  }
 }
