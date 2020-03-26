@@ -9,10 +9,10 @@ import io.flutter.plugin.common.MethodChannel.Result
 import io.flutter.plugin.common.PluginRegistry.Registrar
 
 /** FlutterAmazonFreertosPlugin */
-public class FlutterAmazonFreertosPlugin: FlutterPlugin, MethodCallHandler {
+public class FlutterAmazonFreeRTOSPlugin: FlutterPlugin, MethodCallHandler {
   override fun onAttachedToEngine(@NonNull flutterPluginBinding: FlutterPlugin.FlutterPluginBinding) {
     val channel = MethodChannel(flutterPluginBinding.getFlutterEngine().getDartExecutor(), "flutter_amazon_freertos_plugin")
-    channel.setMethodCallHandler(FlutterAmazonFreertosPlugin());
+    channel.setMethodCallHandler(FlutterAmazonFreeRTOSPlugin());
   }
 
   // This static function is optional and equivalent to onAttachedToEngine. It supports the old
@@ -28,7 +28,7 @@ public class FlutterAmazonFreertosPlugin: FlutterPlugin, MethodCallHandler {
     @JvmStatic
     fun registerWith(registrar: Registrar) {
       val channel = MethodChannel(registrar.messenger(), "flutter_amazon_freertos_plugin")
-      channel.setMethodCallHandler(FlutterAmazonFreertosPlugin())
+      channel.setMethodCallHandler(FlutterAmazonFreeRTOSPlugin())
     }
   }
 
