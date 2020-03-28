@@ -41,4 +41,13 @@ class FlutterAmazonFreeRTOSPlugin {
         await channel.invokeMethod("rescanForDevices");
     }
 
+    Future<List<FreeRTOSDevice>> get discoveredDevices async {
+        final List devices = await channel.invokeListMethod("listDiscoveredDevices");
+        return List<FreeRTOSDevice>.from(
+            devices.map((device) {
+                return FreeRTOSDevice.fromMsg(device);
+            })
+        );
+    }
+
 }

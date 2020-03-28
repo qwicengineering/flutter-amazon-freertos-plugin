@@ -19,7 +19,10 @@ public class SwiftFlutterAmazonFreeRTOSPlugin: NSObject, FlutterPlugin {
                 "rescanForDevices": plugin.rescanForDevices,
                 "connectToDevice": plugin.connectToDevice,
                 "disconnectFromDevice": plugin.disconnectFromDevice,
+                "discoverDevicesOnListen": plugin.discoverDevicesOnListen,
+                "discoverDevicesOnCancel": plugin.discoverDevicesOnCancel,
                 "discoverServices": plugin.discoverServices,
+                "listDiscoveredDevices": plugin.listDiscoveredDevices,
                 "listServices": plugin.listServices,
                 "readCharacteristic": plugin.readCharacteristic,
                 "readDescriptor": plugin.readDescriptor,
@@ -35,16 +38,6 @@ public class SwiftFlutterAmazonFreeRTOSPlugin: NSObject, FlutterPlugin {
         NotificationCenter.default.addObserver(forName: .afrCentralManagerDidUpdateState, object: nil, queue: nil) { notification in
             let state = dumpBluetoothState(plugin.awsFreeRTOSManager.central?.state ?? CBManagerState.unknown)
             channel.invokeMethod("bluetoothStateChangeCallback", arguments: state)
-        }
-        
-        // TODO: Convert to stream
-        // Only notifies if it identifies a new device is discovered
-        // And is not already in the CentralManager.devices list
-        NotificationCenter.default.addObserver(forName: .afrCentralManagerDidDiscoverDevice, object: nil, queue: nil) { notification in
-            if let data = notification.userInfo as? [String: Any] {
-                let deviceId = data.first?.value as! String
-                channel.invokeMethod("didDiscoverNewDeviceCallback", arguments: deviceId)
-            }
         }
     }
 }

@@ -6,6 +6,7 @@ import CoreBluetooth
 
 class FreeRTOSBluetooth {
     let awsFreeRTOSManager = AmazonFreeRTOSManager.shared
+    var discoveredDevicesTimer = [Int: Timer]();
     
     func bluetoothState(call: FlutterMethodCall, result: @escaping FlutterResult) {
         let state = dumpBluetoothState(awsFreeRTOSManager.central?.state ?? CBManagerState.unknown)
@@ -29,11 +30,30 @@ class FreeRTOSBluetooth {
         awsFreeRTOSManager.rescanForDevices()
         result(nil)
     }
+
+    // Discovered devices are usually cached. If there is a new device,
+    // it is added to the awsFreeRTOSManager.devices list. 
+    // However, a device is not removed automatically.
+    // Use rescanForDevices() to reset the awsFreeRTOSManager.devices list
+    func listDiscoveredDevices(call: FlutterMethodCall, result: @escaping FlutterResult) {
+        var devices: [Any] = []
+        for (_, value) in awsFreeRTOSManager.devices {
+            devices.append(dumpFreeRTOSDeviceInfo(value))
+        }
+        result(devices)
+    }
     
     func discoverDevicesOnListen(id: Int, args: Any?, sink: @escaping FlutterEventSink) {
-        for (_, value) in awsFreeRTOSManager.devices {
-           sink(dumpFreeRTOSDeviceInfo(value))
+        discoveredDevicesTimer[0] = Timer.scheduledTimer(withTimeInterval: args as! Double / 1000, repeats: true ) {_ in
+            for (_, value) in self.awsFreeRTOSManager.devices {
+                sink(dumpFreeRTOSDeviceInfo(value))
+            }
         }
+    }
+
+    func discoverDevicesOnCancel(id: Int, args: Any?) {
+        discoveredDevicesTimer[id]?.invalidate()
+        discoveredDevicesTimer.removeValue(forKey: id)
     }
     
     func connectToDevice(call: FlutterMethodCall, result: @escaping FlutterResult) {
