@@ -26,6 +26,12 @@ amazonFreeRTOSPlugin.registerBluetoothStateChangeCallback((bluetoothState) {
 });
 ```
 
+### Get discovered devices
+```dart
+// Use Dart.Timer class to call this peridiocally to refresh the list
+List<FreeRTOSDevice> devices = await amazonFreeRTOSPlugin.discoveredDevices;
+```
+
 ## Credits
 Heavily influenced by the following plugins.
 - [Flutter_blue](https://pub.dartlang.org/packages/flutter_blue)
