@@ -23,7 +23,6 @@ public class SwiftFlutterAmazonFreeRTOSPlugin: NSObject, FlutterPlugin {
                 "discoverDevicesOnCancel": plugin.discoverDevicesOnCancel,
                 "listServices": plugin.listServices,
                 "listDiscoveredDevices": plugin.listDiscoveredDevices,
-                "listServices": plugin.listServices,
                 "readCharacteristic": plugin.readCharacteristic,
                 "readDescriptor": plugin.readDescriptor,
                 "writeDescriptor": plugin.writeDescriptor,
@@ -39,5 +38,6 @@ public class SwiftFlutterAmazonFreeRTOSPlugin: NSObject, FlutterPlugin {
             let state = dumpBluetoothState(plugin.awsFreeRTOSManager.central?.state ?? CBManagerState.unknown)
             channel.invokeMethod("bluetoothStateChangeCallback", arguments: state)
         }
+        
     }
 }
