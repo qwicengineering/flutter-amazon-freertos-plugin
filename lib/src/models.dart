@@ -10,9 +10,9 @@ enum BluetoothState {
 }
 
 enum DeviceState {
-    DISCONNECTED,
-    CONNECTING,
     CONNECTED,
+    CONNECTING,
+    DISCONNECTED,
     DISCONNECTING
 }
 
@@ -21,7 +21,7 @@ class FreeRTOSDevice {
     final String name;
     final DeviceState state;
     final bool reconnect;
-    final String rssi;
+    final int rssi;
     final String certificateId;
     final String brokerEndpoint;
     final int mtu;

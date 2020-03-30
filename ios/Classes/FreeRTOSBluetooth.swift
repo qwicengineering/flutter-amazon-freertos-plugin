@@ -56,20 +56,35 @@ class FreeRTOSBluetooth {
         discoveredDevicesTimer.removeValue(forKey: id)
     }
     
-    func connectToDevice(call: FlutterMethodCall, result: @escaping FlutterResult) {
-        result(FlutterMethodNotImplemented)
+    func connectToDeviceId(call: FlutterMethodCall, result: @escaping FlutterResult) {
+        let args = call.arguments as! [String: Any?]
+        let deviceId = args["id"] as! String
+        let reconnect = args["reconnect"] as? Bool ?? true
+        
+        guard let deviceUUID = UUID(uuidString: deviceId) else { return }
+        if let device = awsFreeRTOSManager.devices[deviceUUID] {
+            device.connect(reconnect: reconnect, credentialsProvider: AWSMobileClient.default())
+        }
     }
     
-    func disconnectFromDevice(call: FlutterMethodCall, result: @escaping FlutterResult) {
-        result(FlutterMethodNotImplemented)
+    func disconnectFromDeviceId(call: FlutterMethodCall, result: @escaping FlutterResult) {
+        let args = call.arguments as! [String: Any?]
+        let deviceId = args["id"] as! String
+        
+        guard let deviceUUID = UUID(uuidString: deviceId) else { return }
+        if let device = awsFreeRTOSManager.devices[deviceUUID] {
+            device.disconnect()
+        }
     }
     
-    func discoverServices(call: FlutterMethodCall, result: @escaping FlutterResult) {
-        result(FlutterMethodNotImplemented)
-    }
-
     func listServices(call: FlutterMethodCall, result: @escaping FlutterResult) {
-        result(FlutterMethodNotImplemented)
+        let args = call.arguments as! [String: Any?]
+        let deviceId = args["id"] as! String
+        
+        guard let deviceUUID = UUID(uuidString: deviceId) else { return }
+        if let device: AmazonFreeRTOSDevice = awsFreeRTOSManager.devices[deviceUUID] {
+            result(device.peripheral.services)
+        }
     }
     
     func readCharacteristic(call: FlutterMethodCall, result: @escaping FlutterResult) {
@@ -98,6 +113,44 @@ class FreeRTOSBluetooth {
     
     func setMtu(call: FlutterMethodCall, result: @escaping FlutterResult) {
         result(FlutterMethodNotImplemented)
+    }
+    
+    // Attaches proper policy to the Cognito on sign-in
+    // This allows user to subscribe and publish messages to IoT Core
+    // via MQTT protocol
+    // See https://github.com/aws-samples/aws-iot-chat-example/blob/master/docs/authentication.md
+    // This is used strictly for example code
+    // TODO: Create a serverless example
+    func attachPrincipalPolicy() {
+                
+        AWSMobileClient.default().getIdentityId().continueWith { task -> Any? in
+            
+            if let error = task.error {
+                print(error)
+                return task
+            }
+            
+            guard let attachPrincipalPolicyRequest = AWSIoTAttachPrincipalPolicyRequest(), let principal = task.result else {
+                return task
+            }
+            
+            attachPrincipalPolicyRequest.policyName = ""
+            attachPrincipalPolicyRequest.principal = String(principal)
+            
+            let configuration = AWSServiceConfiguration(
+                region: .Unknown, credentialsProvider: AWSMobileClient.default()
+            )
+            
+            AWSServiceManager.default()?.defaultServiceConfiguration = configuration
+            
+            AWSIoT.default().attachPrincipalPolicy(attachPrincipalPolicyRequest, completionHandler: { error in
+                if let error = error {
+                    print(error)
+                }
+            })
+            
+            return task
+        }
     }
     
 }
