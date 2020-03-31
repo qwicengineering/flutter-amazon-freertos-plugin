@@ -1,14 +1,22 @@
 package nl.qwic.plugins.flutter_amazon_freertos_plugin
 
-import androidx.annotation.NonNull;
-import com.pycampers.plugin_scaffold.buildMethodMap
+import android.bluetooth.BluetoothAdapter
+import android.content.BroadcastReceiver
+import android.content.Context
+import android.content.Intent
+import android.content.IntentFilter
+import androidx.annotation.NonNull
+import com.pycampers.plugin_scaffold.PluginScaffoldPlugin
 import com.pycampers.plugin_scaffold.createPluginScaffold
 import io.flutter.embedding.engine.plugins.FlutterPlugin
+import io.flutter.plugin.common.EventChannel
+import io.flutter.plugin.common.EventChannel.EventSink
 import io.flutter.plugin.common.MethodCall
-import io.flutter.plugin.common.MethodChannel
 import io.flutter.plugin.common.MethodChannel.MethodCallHandler
 import io.flutter.plugin.common.MethodChannel.Result
 import io.flutter.plugin.common.PluginRegistry.Registrar
+import java.util.logging.StreamHandler
+
 
 /** FlutterAmazonFreertosPlugin */
 public class FlutterAmazonFreeRTOSPlugin: FlutterPlugin, MethodCallHandler {
@@ -61,11 +69,27 @@ public class FlutterAmazonFreeRTOSPlugin: FlutterPlugin, MethodCallHandler {
 //      val channel = MethodChannel(registrar.messenger(), "nl.qwic.plugins.flutter_amazon_freertos_plugin")
 //      channel.setMethodCallHandler(FlutterAmazonFreeRTOSPlugin())
       val plugin = FreeRTOSBluetooth(registrar.context());
-      createPluginScaffold(
+      val channel = createPluginScaffold(
               registrar.messenger(),
               "nl.qwic.plugins.flutter_amazon_freertos_plugin",
               plugin
       )
+
+
+    }
+  }
+
+  class MyReceiver : BroadcastReceiver() {
+    override fun onReceive(context: Context, intent: Intent) {
+      // TODO: This method is called when the BroadcastReceiver is receiving
+      // an Intent broadcast.
+      val action = intent.action
+      if (action == BluetoothAdapter.ACTION_STATE_CHANGED) {
+        val state = intent.getIntExtra(BluetoothAdapter.EXTRA_STATE,
+                BluetoothAdapter.ERROR)
+        throw UnsupportedOperationException("Not yet implemented");
+      }
+      throw UnsupportedOperationException("Not yet implemented")
     }
   }
 

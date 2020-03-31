@@ -1,5 +1,6 @@
 package nl.qwic.plugins.flutter_amazon_freertos_plugin
 
+import android.bluetooth.BluetoothAdapter
 import android.bluetooth.BluetoothDevice
 
 /*
@@ -12,4 +13,6 @@ import android.bluetooth.BluetoothDevice
 */
 
 
-fun dumpBluetoothState(state: BluetoothDevice) {}
+fun dumpBluetoothState(state: BluetoothDevice): Int {
+    return BluetoothAdapter.STATE_DISCONNECTED;
+}

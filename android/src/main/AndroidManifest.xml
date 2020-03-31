@@ -9,4 +9,12 @@
     <!-- AWS Mobile SDK -->
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <application>
+        <receiver android:name=".FlutterAmazonFreeRTOSPlugin$MyReceiver" >
+            <intent-filter>
+                <action android:name="com.example.Broadcast" >
+                </action>
+            </intent-filter>
+        </receiver>
+    </application>
 </manifest>
