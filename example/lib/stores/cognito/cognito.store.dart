@@ -9,7 +9,7 @@ abstract class _CognitoStore with Store {
     int value = 0;
 
     @action
-    void increment() {
+    void signin() {
         value++;
     }
 }

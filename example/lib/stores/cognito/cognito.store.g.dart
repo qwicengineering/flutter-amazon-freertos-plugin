@@ -30,10 +30,10 @@ mixin _$CognitoStore on _CognitoStore, Store {
       ActionController(name: '_CognitoStore');
 
   @override
-  void increment() {
+  void signin() {
     final _$actionInfo = _$_CognitoStoreActionController.startAction();
     try {
-      return super.increment();
+      return super.signin();
     } finally {
       _$_CognitoStoreActionController.endAction(_$actionInfo);
     }

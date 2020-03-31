@@ -43,6 +43,14 @@ mixin _$AuthFormStore on _AuthFormStore, Store {
     }, _$passwordAtom, name: '${_$passwordAtom.name}_set');
   }
 
+  final _$validateUsernameAsyncAction = AsyncAction('validateUsername');
+
+  @override
+  Future<dynamic> validateUsername(String value) {
+    return _$validateUsernameAsyncAction
+        .run(() => super.validateUsername(value));
+  }
+
   final _$_AuthFormStoreActionController =
       ActionController(name: '_AuthFormStore');
 
@@ -70,6 +78,55 @@ mixin _$AuthFormStore on _AuthFormStore, Store {
   String toString() {
     final string =
         'email: ${email.toString()},password: ${password.toString()}';
+    return '{$string}';
+  }
+}
+
+mixin _$AuthFormErrorState on _AuthFormErrorState, Store {
+  Computed<bool> _$hasErrorsComputed;
+
+  @override
+  bool get hasErrors =>
+      (_$hasErrorsComputed ??= Computed<bool>(() => super.hasErrors)).value;
+
+  final _$emailAtom = Atom(name: '_AuthFormErrorState.email');
+
+  @override
+  String get email {
+    _$emailAtom.context.enforceReadPolicy(_$emailAtom);
+    _$emailAtom.reportObserved();
+    return super.email;
+  }
+
+  @override
+  set email(String value) {
+    _$emailAtom.context.conditionallyRunInAction(() {
+      super.email = value;
+      _$emailAtom.reportChanged();
+    }, _$emailAtom, name: '${_$emailAtom.name}_set');
+  }
+
+  final _$passwordAtom = Atom(name: '_AuthFormErrorState.password');
+
+  @override
+  String get password {
+    _$passwordAtom.context.enforceReadPolicy(_$passwordAtom);
+    _$passwordAtom.reportObserved();
+    return super.password;
+  }
+
+  @override
+  set password(String value) {
+    _$passwordAtom.context.conditionallyRunInAction(() {
+      super.password = value;
+      _$passwordAtom.reportChanged();
+    }, _$passwordAtom, name: '${_$passwordAtom.name}_set');
+  }
+
+  @override
+  String toString() {
+    final string =
+        'email: ${email.toString()},password: ${password.toString()},hasErrors: ${hasErrors.toString()}';
     return '{$string}';
   }
 }

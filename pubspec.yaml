@@ -14,6 +14,7 @@ dependencies:
 
   plugin_scaffold: ^2.0.0
   logging: ^0.11.4
+  validators: ^2.0.0+1
 
 dev_dependencies:
   flutter_test:
