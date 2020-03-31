@@ -21,7 +21,7 @@ class _MyAppState extends State<MyApp> {
     getBluetoothState();
 
     // register callback for bluetoothStateChange
-    amazonFreeRTOSPlugin.registerBluetoothStateChangeCallback((bluetoothState) {
+    amazonFreeRTOSPlugin.registerBluetoothStateChangeCallback((bluetoothState) {      
       if(!mounted) return;
 
       setState(() {
