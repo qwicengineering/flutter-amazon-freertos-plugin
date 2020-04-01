@@ -9,31 +9,48 @@ part of 'cognito.store.dart';
 // ignore_for_file: non_constant_identifier_names, unnecessary_lambdas, prefer_expression_function_bodies, lines_longer_than_80_chars, avoid_as, avoid_annotating_with_dynamic
 
 mixin _$CognitoStore on _CognitoStore, Store {
-  final _$valueAtom = Atom(name: '_CognitoStore.value');
+  final _$userStateAtom = Atom(name: '_CognitoStore.userState');
 
   @override
-  int get value {
-    _$valueAtom.context.enforceReadPolicy(_$valueAtom);
-    _$valueAtom.reportObserved();
-    return super.value;
+  UserState get userState {
+    _$userStateAtom.context.enforceReadPolicy(_$userStateAtom);
+    _$userStateAtom.reportObserved();
+    return super.userState;
   }
 
   @override
-  set value(int value) {
-    _$valueAtom.context.conditionallyRunInAction(() {
-      super.value = value;
-      _$valueAtom.reportChanged();
-    }, _$valueAtom, name: '${_$valueAtom.name}_set');
+  set userState(UserState value) {
+    _$userStateAtom.context.conditionallyRunInAction(() {
+      super.userState = value;
+      _$userStateAtom.reportChanged();
+    }, _$userStateAtom, name: '${_$userStateAtom.name}_set');
+  }
+
+  final _$initializeAsyncAction = AsyncAction('initialize');
+
+  @override
+  Future<void> initialize() {
+    return _$initializeAsyncAction.run(() => super.initialize());
   }
 
   final _$_CognitoStoreActionController =
       ActionController(name: '_CognitoStore');
 
   @override
-  void signin() {
+  void setUserState(UserState value) {
     final _$actionInfo = _$_CognitoStoreActionController.startAction();
     try {
-      return super.signin();
+      return super.setUserState(value);
+    } finally {
+      _$_CognitoStoreActionController.endAction(_$actionInfo);
+    }
+  }
+
+  @override
+  void signIn() {
+    final _$actionInfo = _$_CognitoStoreActionController.startAction();
+    try {
+      return super.signIn();
     } finally {
       _$_CognitoStoreActionController.endAction(_$actionInfo);
     }
@@ -41,7 +58,7 @@ mixin _$CognitoStore on _CognitoStore, Store {
 
   @override
   String toString() {
-    final string = 'value: ${value.toString()}';
+    final string = 'userState: ${userState.toString()}';
     return '{$string}';
   }
 }

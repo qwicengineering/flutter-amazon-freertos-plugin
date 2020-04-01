@@ -43,7 +43,7 @@ class LoginScreen extends StatelessWidget {
                                 ),
                                 RaisedButton(
                                     child: Text("Log in"),
-                                    onPressed: cognitoStore.signin,
+                                    onPressed: cognitoStore.signIn,
                                 )
                             ],
                         )
