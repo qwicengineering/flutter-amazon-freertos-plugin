@@ -2,8 +2,9 @@ import "dart:async";
 
 import "package:flutter/material.dart";
 import "package:flutter/services.dart";
-
 import "package:flutter_amazon_freertos_plugin/flutter_amazon_freertos_plugin.dart";
+import "package:flutter_amazon_freertos_plugin_example/stores/cognito/cognito.store.dart";
+import "package:provider/provider.dart";
 
 class BluetoothDevicesScreen extends StatefulWidget {
     @override
@@ -21,15 +22,15 @@ class _BluetoothDevicesScreenState extends State<BluetoothDevicesScreen> {
     @override
     void initState() {
         super.initState();
-        getBluetoothState();
+        // getBluetoothState();
 
         // register callback for bluetoothStateChange
         amazonFreeRTOSPlugin.registerBluetoothStateChangeCallback((bluetoothState) {
-        if(!mounted) return;
+        // if(!mounted) return;
 
-        setState(() {
-            _bluetoothState = bluetoothState;
-            });
+        // setState(() {
+        //     _bluetoothState = bluetoothState;
+        //     });
         });
     }
 
@@ -110,8 +111,15 @@ class _BluetoothDevicesScreenState extends State<BluetoothDevicesScreen> {
         }
     }
 
+    /*
     @override
     Widget build(BuildContext context) {
+        final cognitoStore = Provider.of<CognitoStore>(context);
+
+        if (cognitoStore.userState == UserState.SIGNED_OUT) {
+            Navigator.popAndPushNamed(context, "/login");
+        }
+
         return Scaffold(
             appBar: AppBar(
             title: const Text("Amazon FreeRTOS BLE"),
@@ -132,6 +140,51 @@ class _BluetoothDevicesScreenState extends State<BluetoothDevicesScreen> {
                         children: <Widget>[
                             OutlineButton(child: Text("Start Scan"), onPressed: startScanning),
                             OutlineButton(child: Text("Stop Scan"), onPressed: stopScanning),
+                            OutlineButton(child: Text("Sign out"), onPressed: cognitoStore.signOut),
+                        ])
+                    ],
+                ),
+            ),
+        );
+    }
+    */
+
+    @override
+    Widget build(BuildContext context) {
+        final cognitoStore = Provider.of<CognitoStore>(context);
+
+        Future<void> _onPressedSignOut() async {
+            try {
+                await cognitoStore.signOut();
+                Navigator.popAndPushNamed(context, "/");
+            } catch (e) {
+                print("Error: Unable to sign out _onPressedSignOut");
+                print(e);
+            }
+        }
+
+        return Scaffold(
+            appBar: AppBar(
+                title: Text("BLE Devices"),
+                actions: <Widget>[
+                    IconButton(
+                        icon: Icon(Icons.refresh),
+                        tooltip: "Rescan for devices",
+                        onPressed: rescan,
+                    )
+                ],
+            ),
+            body: Container(
+                padding: EdgeInsets.all(10),
+                child: Column(
+                    children: <Widget>[
+                        Text("Bluetooth state: $_bluetoothState\n"),
+                        Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceAround,
+                        children: <Widget>[
+                            OutlineButton(child: Text("Start Scan"), onPressed: startScanning),
+                            OutlineButton(child: Text("Stop Scan"), onPressed: stopScanning),
+                            OutlineButton(child: Text("Sign out"), onPressed: _onPressedSignOut),
                         ])
                     ],
                 ),

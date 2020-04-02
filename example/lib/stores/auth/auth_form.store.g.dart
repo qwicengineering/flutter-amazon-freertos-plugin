@@ -43,6 +43,23 @@ mixin _$AuthFormStore on _AuthFormStore, Store {
     }, _$passwordAtom, name: '${_$passwordAtom.name}_set');
   }
 
+  final _$verificationCodeAtom = Atom(name: '_AuthFormStore.verificationCode');
+
+  @override
+  String get verificationCode {
+    _$verificationCodeAtom.context.enforceReadPolicy(_$verificationCodeAtom);
+    _$verificationCodeAtom.reportObserved();
+    return super.verificationCode;
+  }
+
+  @override
+  set verificationCode(String value) {
+    _$verificationCodeAtom.context.conditionallyRunInAction(() {
+      super.verificationCode = value;
+      _$verificationCodeAtom.reportChanged();
+    }, _$verificationCodeAtom, name: '${_$verificationCodeAtom.name}_set');
+  }
+
   final _$validateUsernameAsyncAction = AsyncAction('validateUsername');
 
   @override
@@ -75,9 +92,19 @@ mixin _$AuthFormStore on _AuthFormStore, Store {
   }
 
   @override
+  void setVerificationCode(String value) {
+    final _$actionInfo = _$_AuthFormStoreActionController.startAction();
+    try {
+      return super.setVerificationCode(value);
+    } finally {
+      _$_AuthFormStoreActionController.endAction(_$actionInfo);
+    }
+  }
+
+  @override
   String toString() {
     final string =
-        'email: ${email.toString()},password: ${password.toString()}';
+        'email: ${email.toString()},password: ${password.toString()},verificationCode: ${verificationCode.toString()}';
     return '{$string}';
   }
 }

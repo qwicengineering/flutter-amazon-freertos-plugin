@@ -11,6 +11,26 @@ class LoginScreen extends StatelessWidget {
         final authFormStore = Provider.of<AuthFormStore>(context);
         final cognitoStore = Provider.of<CognitoStore>(context);
 
+        void _onPressedSignIn() async {
+            try {
+                await cognitoStore.signIn(authFormStore.email, authFormStore.password);
+                Navigator.pushNamed(context, "/bluetoothDevices");
+            } catch (e) {
+                print("Error: Cognito _onPressedSignIn");
+                print(e);
+            }
+        }
+
+        void _onPressedRegister() async {
+            try {
+                await cognitoStore.register(authFormStore.email, authFormStore.password);
+                Navigator.pushNamed(context, "/verifyUser");
+            } catch (e) {
+                print("Error: Cognito _onPressedRegister");
+                print(e);
+            }
+        }
+
         return Observer(name: "LoginScreen",
             builder: (_) => Scaffold(
                 appBar: AppBar(
@@ -41,10 +61,22 @@ class LoginScreen extends StatelessWidget {
                                         ),
                                     ),
                                 ),
-                                RaisedButton(
-                                    child: Text("Log in"),
-                                    onPressed: cognitoStore.signIn,
-                                )
+                                Container(
+                                    margin: EdgeInsets.only(top: 10),
+                                    child: Row(
+                                        mainAxisAlignment: MainAxisAlignment.spaceAround,
+                                        children: <Widget>[
+                                            RaisedButton(
+                                                child: Text("Log in"),
+                                                onPressed: _onPressedSignIn,
+                                            ),
+                                            RaisedButton(
+                                                child: Text("Register"),
+                                                onPressed: _onPressedRegister,
+                                            )
+                                        ],
+                                    ),
+                                ),
                             ],
                         )
                     )

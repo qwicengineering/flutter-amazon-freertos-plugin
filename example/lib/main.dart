@@ -1,7 +1,9 @@
 import "package:flutter/material.dart";
+import "package:flutter_amazon_freertos_plugin_example/verify_user.screen.dart";
+import "package:flutter_amazon_freertos_plugin_example/widgets/start.widget.dart";
 import "package:provider/provider.dart";
 
-import "bluetooth/bluetooth_devices.screen.dart";
+import "bluetooth_devices.screen.dart";
 import "stores/auth/auth_form.store.dart";
 import "stores/cognito/cognito.store.dart";
 import "login.screen.dart";
@@ -21,9 +23,11 @@ class MyApp extends StatelessWidget {
                 theme: ThemeData(
                     primarySwatch: Colors.blue,
                 ),
-                home: LoginScreen(),
+                home: StartWidget(),
+                initialRoute: "/",
                 routes: {
                     "/login": (context) => LoginScreen(),
+                    "/verifyUser": (context) => VerifyUserScreen(),
                     "/bluetoothDevices": (context) => BluetoothDevicesScreen()
                 },
             ),

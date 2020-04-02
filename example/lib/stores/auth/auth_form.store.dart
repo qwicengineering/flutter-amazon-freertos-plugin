@@ -15,6 +15,9 @@ abstract class _AuthFormStore with Store {
     @observable
     String password = "";
 
+    @observable
+    String verificationCode = "";
+
     @action
     void setEmail(String value) {
         email = value;
@@ -23,6 +26,11 @@ abstract class _AuthFormStore with Store {
     @action
     void setPassword(String value) {
         password = value;
+    }
+
+    @action
+    void setVerificationCode(String value) {
+        verificationCode = value;
     }
 
     @action
