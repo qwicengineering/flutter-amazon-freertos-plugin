@@ -1,4 +1,5 @@
 import "package:flutter/material.dart";
+import 'package:flutter_amazon_freertos_plugin_example/stores/bluetooth/bluetooth.store.dart';
 import "package:flutter_amazon_freertos_plugin_example/verify_user.screen.dart";
 import "package:flutter_amazon_freertos_plugin_example/widgets/start.widget.dart";
 import "package:provider/provider.dart";
@@ -16,6 +17,7 @@ class MyApp extends StatelessWidget {
         return MultiProvider(
             providers: [
                 Provider<AuthFormStore>(create: (_) => AuthFormStore()),
+                Provider<BluetoothStore>(create: (_) => BluetoothStore()),
                 Provider<CognitoStore>(create: (_) => CognitoStore()),
             ],
             child: MaterialApp(
