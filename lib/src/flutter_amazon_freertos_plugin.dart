@@ -50,4 +50,6 @@ class FlutterAmazonFreeRTOSPlugin {
         );
     }
 
+    //String get pkgName => pkgName;
+
 }
