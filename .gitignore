@@ -10,3 +10,4 @@ example/android/amplify/team-provider-info.json
 ios/amplify/team-provider-info.json
 
 **/.idea
+**/*/awsconfiguration.json
