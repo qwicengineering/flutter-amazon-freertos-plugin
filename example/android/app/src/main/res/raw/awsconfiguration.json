@@ -2,22 +2,22 @@
 	"UserAgent": "MobileHub/1.0",
 	"Version": "1.0",
 	"CredentialsProvider": {
-		"CognitoIdentity": {
-			"Default": {
-				"PoolId": "Federated Identities -> Edit identity pool -> Identity pool ID. (eg. us-west-2:fc4d19b1-873f-44d8-bdcf-3a8e7aabf3ea)",
-				"Region": "Your Region. (eg. us-east-1)"
-			}
-		}
+	"CognitoIdentity": {
+	"Default": {
+	"PoolId": "eu-west-1:626153b3-571d-4ede-85ea-e9efe2812c4a",
+	"Region": "eu-west-1"
+	}
+	}
 	},
 	"IdentityManager": {
-		"Default": {}
+	"Default": {}
 	},
 	"CognitoUserPool": {
-		"Default": {
-			"PoolId": "UserPool -> General settings -> Pool Id. (eg. us-east-1_example)",
-			"AppClientId": "UserPool -> General settings -> App clients -> Show Details. (eg. 3tcegaot7efa8abgn1fxnebq5)",
-			"AppClientSecret": "UserPool -> General settings -> App clients -> Show Details. (eg. dse11rx91vs1t9600uacc0ssw1byju8em3k60271n748s26ts9l)",
-			"Region": "Your Region. (eg. us-east-1)"
-		}
+	"Default": {
+	"PoolId": "eu-west-1_vUkKRVdwk",
+	"AppClientId": "3chdqligs741lnd3nl1g4f1hen",
+	"AppClientSecret": "12k7obg79rab815ms72lr8ghj14r5lonjk5kjuflnhpj1rbfisgg",
+	"Region": "eu-west-1"
 	}
-}
+	}
+   }

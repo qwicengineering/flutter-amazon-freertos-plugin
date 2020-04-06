@@ -9,7 +9,7 @@ class BluetoothStore = _BluetoothStore with _$BluetoothStore;
 
 // Bluetooth low energy APIs via Mobx Store
 abstract class _BluetoothStore with Store {
-    
+
     FlutterAmazonFreeRTOSPlugin amazonFreeRTOSPlugin = FlutterAmazonFreeRTOSPlugin.instance;
 
     @observable
@@ -57,7 +57,7 @@ abstract class _BluetoothStore with Store {
 
     @action
     void setBluetoothState(BluetoothState value) {
-        bluetoothState = value;
+      bluetoothState = value;
     }
 
     Future<void> startScanning() async {

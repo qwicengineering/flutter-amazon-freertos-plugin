@@ -10,10 +10,10 @@ abstract class _AuthFormStore with Store {
     final AuthFormErrorState error  = AuthFormErrorState();
 
     @observable
-    String email = "";
+    String email = "fjimenez@qwic.nl";
 
     @observable
-    String password = "";
+    String password = "Password1!";
 
     @observable
     String verificationCode = "";

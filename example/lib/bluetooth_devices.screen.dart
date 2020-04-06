@@ -3,15 +3,18 @@ import "dart:async";
 import "package:flutter/material.dart";
 import 'package:flutter_amazon_freertos_plugin_example/stores/bluetooth/bluetooth.store.dart';
 import "package:flutter_amazon_freertos_plugin_example/stores/cognito/cognito.store.dart";
+import 'package:flutter_mobx/flutter_mobx.dart';
 import "package:provider/provider.dart";
 
 class BluetoothDevicesScreen extends StatelessWidget {
     @override
     Widget build(BuildContext context) {
         Timer devicesNearbyTimer;
-
         final cognitoStore = Provider.of<CognitoStore>(context);
-        final bluetoothStore = Provider.of<BluetoothStore>(context);
+        final bluetoothStore = Provider.of<BluetoothStore>(context); 
+
+        // TODO: I'm not sure if this is the best place to initialize
+        bluetoothStore.initialize();
 
         Future<void> _onPressedSignOut() async {
             try {
@@ -56,7 +59,8 @@ class BluetoothDevicesScreen extends StatelessWidget {
         print("BLE devices nearby");
         print("${bluetoothStore.devicesNearby}");
 
-        return Scaffold(
+        return Observer(name: "BluetoothDevicesScreen",
+            builder: (_) =>Scaffold(
             appBar: AppBar(
                 title: Text("BLE Devices"),
                 actions: <Widget>[
@@ -71,7 +75,7 @@ class BluetoothDevicesScreen extends StatelessWidget {
                 padding: EdgeInsets.all(10),
                 child: Column(
                     children: <Widget>[
-                        Text("Bluetooth state: $bluetoothStore.bluetoothState\n"),
+                        Text("Bluetooth state: ${bluetoothStore.bluetoothState}\n"),
                         Row(
                             mainAxisAlignment: MainAxisAlignment.spaceAround,
                             children: <Widget>[
@@ -83,6 +87,7 @@ class BluetoothDevicesScreen extends StatelessWidget {
                     ],
                 ),
             ),
+        ),
         );
     }
 }
