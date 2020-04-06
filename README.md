@@ -33,7 +33,7 @@ List<FreeRTOSDevice> devices = await amazonFreeRTOSPlugin.discoveredDevices;
 ```
 
 ### Example app
-Fill in proper Cognito credentials in `example/android/app/src/main/res/raw/awscredentials.json`
+Duplicate `example/android/app/src/main/res/raw/awscredentials.template.json` file, rename it into `example/android/app/src/main/res/raw/awscredentials.json` and fill in proper Cognito credentials:
 ```json
 {
 	"UserAgent": "MobileHub/1.0",
