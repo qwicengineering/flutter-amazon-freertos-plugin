@@ -5,6 +5,20 @@
          In most cases you can leave this as-is, but you if you want to provide
          additional functionality it is fine to subclass or reimplement
          FlutterApplication and put your custom class here. -->
+         <uses-permission android:name="android.permission.BLUETOOTH"/>
+    <!-- initiate device discovery and manipulate bluetooth settings -->
+    <uses-permission android:name="android.permission.BLUETOOTH_ADMIN"/>
+    <!-- allow scan BLE -->
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+
+    <!-- AWS Mobile SDK -->
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+
+    <uses-feature
+        android:name="android.hardware.bluetooth_le"
+        android:required="true"/>
+        
     <application
         android:name="io.flutter.app.FlutterApplication"
         android:label="flutter_amazon_freertos_plugin_example"

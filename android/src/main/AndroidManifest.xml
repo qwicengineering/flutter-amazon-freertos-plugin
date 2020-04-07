@@ -4,7 +4,7 @@
     <!-- initiate device discovery and manipulate bluetooth settings -->
     <uses-permission android:name="android.permission.BLUETOOTH_ADMIN"/>
     <!-- allow scan BLE -->
-    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
 
     <!-- AWS Mobile SDK -->
     <uses-permission android:name="android.permission.INTERNET" />

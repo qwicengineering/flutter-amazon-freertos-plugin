@@ -53,7 +53,7 @@ class BluetoothDevicesScreen extends StatelessWidget {
 
         Future<void> _startScanning() async {
             await bluetoothStore.startScanning();
-            _getDevicesNearby();
+            // _getDevicesNearby();
         }
 
         print("BLE devices nearby");
