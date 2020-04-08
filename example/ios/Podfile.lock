@@ -23,6 +23,8 @@ PODS:
     - AWSMobileClient (~> 2.11.0)
     - Flutter
     - plugin_scaffold
+  - "permission_handler (5.0.0+hotfix.3)":
+    - Flutter
   - plugin_scaffold (0.0.1):
     - Flutter
 
@@ -30,6 +32,7 @@ DEPENDENCIES:
   - Flutter (from `Flutter`)
   - flutter_amazon_freertos_plugin (from `.symlinks/plugins/flutter_amazon_freertos_plugin/ios`)
   - flutter_cognito_plugin (from `.symlinks/plugins/flutter_cognito_plugin/ios`)
+  - permission_handler (from `.symlinks/plugins/permission_handler/ios`)
   - plugin_scaffold (from `.symlinks/plugins/plugin_scaffold/ios`)
 
 SPEC REPOS:
@@ -49,6 +52,8 @@ EXTERNAL SOURCES:
     :path: ".symlinks/plugins/flutter_amazon_freertos_plugin/ios"
   flutter_cognito_plugin:
     :path: ".symlinks/plugins/flutter_cognito_plugin/ios"
+  permission_handler:
+    :path: ".symlinks/plugins/permission_handler/ios"
   plugin_scaffold:
     :path: ".symlinks/plugins/plugin_scaffold/ios"
 
@@ -63,6 +68,7 @@ SPEC CHECKSUMS:
   Flutter: 0e3d915762c693b495b44d77113d4970485de6ec
   flutter_amazon_freertos_plugin: 112b6277673da9705dff11a5c15d276cc77cf085
   flutter_cognito_plugin: 12b6627514b887914305da26e17ca87aae67bbac
+  permission_handler: 4a985b5448897c27fdeadde84f7452520c0e6c58
   plugin_scaffold: e7c52bc1cfb6e672959f798dfc9dea8dff55daeb
 
 PODFILE CHECKSUM: 1b66dae606f75376c5f2135a8290850eeb09ae83

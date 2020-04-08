@@ -19,5 +19,5 @@
 			"AppClientSecret": "UserPool -> General settings -> App clients -> Show Details. (eg. dse11rx91vs1t9600uacc0ssw1byju8em3k60271n748s26ts9l)",
 			"Region": "Your Region. (eg. us-east-1)"
 		}
-	}
+ 	} 
 }
