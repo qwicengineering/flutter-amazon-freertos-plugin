@@ -7,10 +7,14 @@ import "package:provider/provider.dart";
 import "package:flutter_amazon_freertos_plugin/flutter_amazon_freertos_plugin.dart";
 
 class BluetoothDevicesScreen extends StatelessWidget {
+
     @override
     Widget build(BuildContext context) {
         final cognitoStore = Provider.of<CognitoStore>(context);
-        final bluetoothStore = Provider.of<BluetoothStore>(context);
+        final bluetoothStore = Provider.of<BluetoothStore>(context); 
+
+        // TODO: I'm not sure if this is the best place to initialize
+        bluetoothStore.initialize();
 
         Future<void> _onPressedSignOut() async {
             try {
@@ -55,43 +59,44 @@ class BluetoothDevicesScreen extends StatelessWidget {
         }
 
         return Observer(name: "BluetoothDevices",
-                builder: (_) => Scaffold(
-                    appBar: AppBar(
-                        title: Text("BLE Devices"),
-                        actions: <Widget>[
-                            IconButton(
-                                icon: Icon(Icons.refresh),
-                                tooltip: "Rescan for devices",
-                                onPressed: bluetoothStore.rescan,
+            builder: (_) => Scaffold(
+                appBar: AppBar(
+                    title: Text("BLE Devices"),
+                    actions: <Widget>[
+                        IconButton(
+                            icon: Icon(Icons.refresh),
+                            tooltip: "Rescan for devices",
+                            onPressed: bluetoothStore.rescan,
+                        )
+                    ],
+                ),
+                body: Container(
+                    padding: EdgeInsets.all(10),
+                    child: Column(
+                        children: <Widget>[
+                            Text("Bluetooth state: ${bluetoothStore.bluetoothState}\n"),
+                            Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                                children: <Widget>[
+                                    OutlineButton(child: Text("Start Scan"), onPressed: _startScanning),
+                                    OutlineButton(child: Text("Stop Scan"), onPressed: _stopScanning),
+                                    OutlineButton(child: Text("Sign out"), onPressed: _onPressedSignOut),
+                                ]
+                            ),
+                            Expanded(
+                                flex: 1,
+                                child: Container(
+                                    margin: EdgeInsets.only(top: 10),
+                                    child: ListView.builder(
+                                        padding: EdgeInsets.all(8),
+                                        itemCount: bluetoothStore.devicesNearby.length,
+                                        itemBuilder: _buildDeviceContainer,
+                                    ),
+                                ),
                             )
                         ],
                     ),
-                    body: Container(
-                        padding: EdgeInsets.all(10),
-                        child: Column(
-                            children: <Widget>[
-                                Text("Bluetooth state: $bluetoothStore.bluetoothState\n"),
-                                Row(
-                                    mainAxisAlignment: MainAxisAlignment.spaceAround,
-                                    children: <Widget>[
-                                        OutlineButton(child: Text("Start Scan"), onPressed: _startScanning),
-                                        OutlineButton(child: Text("Stop Scan"), onPressed: _stopScanning),
-                                        OutlineButton(child: Text("Sign out"), onPressed: _onPressedSignOut),
-                                    ]
-                                ),
-                                Expanded(
-                                    flex: 1,
-                                    child: Container(
-                                        margin: EdgeInsets.only(top: 10),
-                                        child: ListView.builder(
-                                            padding: EdgeInsets.all(8),
-                                            itemCount: bluetoothStore.devicesNearby.length,
-                                            itemBuilder: _buildDeviceContainer),
-                                    ),
-                                )
-                            ],
-                        ),
-                    ),
+                ),
             ),
         );
     }

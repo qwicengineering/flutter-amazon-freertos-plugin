@@ -6,7 +6,6 @@ part "auth_form.store.g.dart";
 class AuthFormStore = _AuthFormStore with _$AuthFormStore;
 
 abstract class _AuthFormStore with Store {
-
     final AuthFormErrorState error  = AuthFormErrorState();
 
     @observable
@@ -39,14 +38,11 @@ abstract class _AuthFormStore with Store {
             error.email = "Cannot be blank";
             return;
         }
-
         error.email = null;
     }
-
 }
 
 class AuthFormErrorState = _AuthFormErrorState with _$AuthFormErrorState;
-
 abstract class _AuthFormErrorState with Store {
     @observable
     String email;
