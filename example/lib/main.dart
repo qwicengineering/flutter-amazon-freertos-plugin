@@ -12,27 +12,27 @@ import "login.screen.dart";
 void main() => runApp(MyApp());
 
 class MyApp extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return MultiProvider(
-      providers: [
-        Provider<AuthFormStore>(create: (_) => AuthFormStore()),
-        Provider<BluetoothStore>(create: (_) => BluetoothStore()),
-        Provider<CognitoStore>(create: (_) => CognitoStore()),
-      ],
-      child: MaterialApp(
-        title: "Amazon FreeRTOS BLE Demo",
-        theme: ThemeData(
-          primarySwatch: Colors.blue,
-        ),
-        home: StartWidget(),
-        initialRoute: "/",
-        routes: {
-          "/login": (context) => LoginScreen(),
-          "/verifyUser": (context) => VerifyUserScreen(),
-          "/bluetoothDevices": (context) => BluetoothDevicesScreen()
-        },
-      ),
-    );
-  }
+    @override
+    Widget build(BuildContext context) {
+        return MultiProvider(
+            providers: [
+                Provider<AuthFormStore>(create: (_) => AuthFormStore()),
+                Provider<BluetoothStore>(create: (_) => BluetoothStore()),
+                Provider<CognitoStore>(create: (_) => CognitoStore()),
+            ],
+            child: MaterialApp(
+                title: "Amazon FreeRTOS BLE Demo",
+                theme: ThemeData(
+                    primarySwatch: Colors.blue,
+                ),
+                home: StartWidget(),
+                initialRoute: "/",
+                routes: {
+                    "/login": (context) => LoginScreen(),
+                    "/verifyUser": (context) => VerifyUserScreen(),
+                    "/bluetoothDevices": (context) => BluetoothDevicesScreen()
+                },
+            ),
+        );
+    }
 }

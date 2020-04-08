@@ -11,117 +11,113 @@ class BluetoothStore = _BluetoothStore with _$BluetoothStore;
 
 // Bluetooth low energy APIs via Mobx Store
 abstract class _BluetoothStore with Store {
-  FlutterAmazonFreeRTOSPlugin amazonFreeRTOSPlugin =
-      FlutterAmazonFreeRTOSPlugin.instance;
+    FlutterAmazonFreeRTOSPlugin amazonFreeRTOSPlugin = FlutterAmazonFreeRTOSPlugin.instance;
 
-  @observable
-  BluetoothState bluetoothState = BluetoothState.UNKNOWN;
+    @observable
+    BluetoothState bluetoothState = BluetoothState.UNKNOWN;
 
-  @observable
-  List<FreeRTOSDevice> devicesNearby = [];
+    @observable
+    List<FreeRTOSDevice> devicesNearby = [];
 
-  @action
-  Future<void> initialize() async {
-    try {
-      bluetoothState = await amazonFreeRTOSPlugin.bluetoothState;
-      amazonFreeRTOSPlugin
-          .registerBluetoothStateChangeCallback(setBluetoothState);
-    } catch (e) {
-      print("Error: initializing bluetooth store");
-      print(e);
+    @action
+    Future<void> initialize() async {
+        try {
+            bluetoothState = await amazonFreeRTOSPlugin.bluetoothState;
+            amazonFreeRTOSPlugin.registerBluetoothStateChangeCallback(setBluetoothState);
+        } catch (e) {
+            print("Error: initializing bluetooth store");
+            print(e);
+        }
     }
-  }
 
-  /*
-    * Stream option to discover nearby devices?
-    Future<void> _getDevicesNearby() async {
+    /*
+        * Stream option to discover nearby devices?
+        Future<void> _getDevicesNearby() async {
         amazonFreeRTOSPlugin.discoverDevices.listen((device) {
             print(device);
         });
-    }
+        }
     */
 
-  @action
-  Future<void> getDevicesNearby() async {
-    // Nearby devices list are usually cached.
-    // If there is a new device discovered nearby, it is added to the list
-    // automatically. This is not the the case if the device that was previously
-    // discovered and in list turned off (for any reason). It does not get removed
-    // from list automatically.
-    // rescanForDevices() freshes the device list from the platform side.
-    try {
-      devicesNearby = await amazonFreeRTOSPlugin.discoveredDevices;
-      print(devicesNearby);
-    } catch (e) {
-      print("Error: Failed to retreive nearby devices");
-      print(e);
-    }
-  }
-
-  @action
-  void setBluetoothState(BluetoothState value) {
-    bluetoothState = value;
-  }
-
-  Future<void> startScanning() async {
-    try {
-      // Location permission needed on Android to scan devices
-      // (Requesting Runtime Permissions needed for Android SDK 23 and higher)
-      // AWSfreeRTOS is using Android SDK 23
-      // https://developer.android.com/distribute/best-practices/develop/runtime-permissions
-      // https://developer.radiusnetworks.com/2015/09/29/is-your-beacon-app-ready-for-android-6.html
-      // Using this Flutter plugin: https://pub.dev/packages/permission_handler#-example-tab-
-      var status = PermissionStatus.undetermined;
-
-      if(Platform.isAndroid){
-        status = await Permission.location.status;
-        if(status == PermissionStatus.permanentlyDenied) {
-          // The user opted to never again see the permission request dialog for this
-          // app. The only way to change the permission's status now is to let the
-          // user manually enable it in the system settings.
-          openAppSettings(); 
-          return;
+    @action
+    Future<void> getDevicesNearby() async {
+        // Nearby devices list are usually cached.
+        // If there is a new device discovered nearby, it is added to the list
+        // automatically. This is not the the case if the device that was previously
+        // discovered and in list turned off (for any reason). It does not get removed
+        // from list automatically.
+        // rescanForDevices() freshes the device list from the platform side.
+        try {
+            devicesNearby = await amazonFreeRTOSPlugin.discoveredDevices;
+            print(devicesNearby);
+        } catch (e) {
+            print("Error: Failed to retreive nearby devices");
+            print(e);
         }
-        if(status != PermissionStatus.granted) {
-          // Request the permission if not granted
-          status = await Permission.location.request();
+    }
+
+    @action
+    void setBluetoothState(BluetoothState value) {
+        bluetoothState = value;
+    }
+
+    Future<void> startScanning() async {
+        try {
+            // Location permission needed on Android to scan devices
+            // (Requesting Runtime Permissions needed for Android SDK 23 and higher)
+            // AWSfreeRTOS is using Android SDK 23
+            // https://developer.android.com/distribute/best-practices/develop/runtime-permissions
+            // https://developer.radiusnetworks.com/2015/09/29/is-your-beacon-app-ready-for-android-6.html
+            // Using this Flutter plugin: https://pub.dev/packages/permission_handler#-example-tab-
+            var status = PermissionStatus.undetermined;
+
+            if(Platform.isAndroid){
+                status = await Permission.location.status;
+                if(status == PermissionStatus.permanentlyDenied) {
+                    // The user opted to never again see the permission request dialog for this
+                    // app. The only way to change the permission's status now is to let the
+                    // user manually enable it in the system settings.
+                    openAppSettings(); 
+                    return;
+                }
+                if(status != PermissionStatus.granted) {
+                    // Request the permission if not granted
+                    status = await Permission.location.request();
+                }
+            }
+            if(
+                Platform.isIOS || 
+                (Platform.isAndroid && status == PermissionStatus.granted)
+            ) {
+                await amazonFreeRTOSPlugin.startScanForDevices();
+                print("Start scanning for nearby BLE devices");
+            }
+        } catch (e) {
+            print("Error: Failed to start scan startScanning()");
+            print(e);
         }
-      }
-
-      if(
-        Platform.isIOS || 
-        (Platform.isAndroid && status == PermissionStatus.granted)
-      ) {
-        await amazonFreeRTOSPlugin.startScanForDevices();
-        print("Start scanning for nearby BLE devices");
-      }
-    } catch (e) {
-      print("Error: Failed to start scan startScanning()");
-      print(e);
     }
-  }
 
-  @action
-  Future<void> stopScanning() async {
-    try {
-      amazonFreeRTOSPlugin.stopScanForDevices();
-      print("Stop scanning for nearby BLE devices");
-    } catch (e) {
-      print("Error: Failed to stop scan stopScanning()");
-      print(e);
+    @action
+    Future<void> stopScanning() async {
+        try {
+            amazonFreeRTOSPlugin.stopScanForDevices();
+            print("Stop scanning for nearby BLE devices");
+        } catch (e) {
+            print("Error: Failed to stop scan stopScanning()");
+            print(e);
+        }
     }
-  }
 
-  Future<void> rescan() async {
-    try {
-      amazonFreeRTOSPlugin.rescanForDevices();
-    } catch (e) {
-      print("Error: Failed to rescan rescanForDevices()");
-      print(e);
+    Future<void> rescan() async {
+        try {
+            amazonFreeRTOSPlugin.rescanForDevices();
+        } catch (e) {
+            print("Error: Failed to rescan rescanForDevices()");
+            print(e);
+        }
     }
-  }
 
-  @computed
-  bool get isBluetoothSupportedAndOn =>
-      bluetoothState == BluetoothState.POWERED_ON;
+    @computed
+    bool get isBluetoothSupportedAndOn => bluetoothState == BluetoothState.POWERED_ON;
 }

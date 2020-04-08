@@ -54,7 +54,6 @@ class FreeRTOSBluetooth(context: Context) {
         )
         result.success(null);
     }
-
 //    fun listDiscoveredDevices(call: MethodCall, result: MethodChannel.Result) {
 //        result.success(Array<Int>(0) {0})
 //    }

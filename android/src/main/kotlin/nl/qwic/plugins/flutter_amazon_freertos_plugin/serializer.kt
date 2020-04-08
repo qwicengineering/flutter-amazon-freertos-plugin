@@ -27,6 +27,5 @@ fun dumpBluetoothState(state: Int): Int {
         else -> {
             5
         }
-
     }
 }

@@ -70,5 +70,5 @@ class VerifyUserScreen extends StatelessWidget {
                 )
             )
         );
-    }   
+    }
 }

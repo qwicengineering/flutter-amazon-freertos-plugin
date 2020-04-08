@@ -34,7 +34,7 @@ class LoginScreen extends StatelessWidget {
         return Observer(name: "LoginScreen",
             builder: (_) => Scaffold(
                 appBar: AppBar(
-                    title: Text("Login screen")
+                title: Text("Login screen")
                 ),
                 body: Form(
                     child: Padding(

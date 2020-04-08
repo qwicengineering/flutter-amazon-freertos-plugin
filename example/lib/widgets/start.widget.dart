@@ -5,6 +5,7 @@ import "package:flutter_amazon_freertos_plugin_example/stores/cognito/cognito.st
 import "package:provider/provider.dart";
 
 class StartWidget extends StatelessWidget {
+    
     @override
     Widget build(BuildContext context) {
         final cognitoStore = Provider.of<CognitoStore>(context);
@@ -15,7 +16,6 @@ class StartWidget extends StatelessWidget {
             }(),
             builder: (BuildContext context, AsyncSnapshot snapshot) {
                 if (!cognitoStore.isUserSignIn) return LoginScreen();
-
                 return BluetoothDevicesScreen();
             },
         );
