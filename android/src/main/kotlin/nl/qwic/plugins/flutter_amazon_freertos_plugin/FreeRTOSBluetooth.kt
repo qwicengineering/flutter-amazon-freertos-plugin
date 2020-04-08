@@ -35,7 +35,6 @@ class FreeRTOSBluetooth(context: Context) {
     private val bluetoothAdapter = bluetoothManager.adapter
     private val awsFreeRTOSManager = AmazonFreeRTOSManager(context, bluetoothAdapter)!!
 
-
     fun bluetoothState(call: MethodCall, result: MethodChannel.Result) {
         result.success(dumpBluetoothState(bluetoothAdapter.state));
     }
@@ -56,7 +55,7 @@ class FreeRTOSBluetooth(context: Context) {
         result.success(null);
     }
 
-    fun listDiscoveredDevices(call: MethodCall, result: MethodChannel.Result) {
-        result.success(Array<Int>(0) {0})
-    }
+//    fun listDiscoveredDevices(call: MethodCall, result: MethodChannel.Result) {
+//        result.success(Array<Int>(0) {0})
+//    }
 }

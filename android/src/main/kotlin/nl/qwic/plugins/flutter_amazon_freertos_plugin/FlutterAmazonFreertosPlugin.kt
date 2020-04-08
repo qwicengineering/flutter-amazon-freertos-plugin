@@ -8,34 +8,40 @@ import android.content.IntentFilter
 import androidx.annotation.NonNull
 import com.pycampers.plugin_scaffold.createPluginScaffold
 import io.flutter.embedding.engine.plugins.FlutterPlugin
+import io.flutter.plugin.common.BinaryMessenger
 import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel.MethodCallHandler
 import io.flutter.plugin.common.MethodChannel.Result
 import io.flutter.plugin.common.PluginRegistry.Registrar
 
-/** FlutterAmazonFreertosPlugin */
+/** FlutterAmazonFreeRTOSPlugin */
+
+private fun pluginInitializer(context: Context, messenger: BinaryMessenger) {
+  val plugin = FreeRTOSBluetooth(context)
+  val channel = createPluginScaffold(
+          messenger,
+          "nl.qwic.plugins.flutter_amazon_freertos_plugin",
+          plugin
+  )
+  val mReceiver: BroadcastReceiver = object : BroadcastReceiver() {
+    override fun onReceive(context: Context, intent: Intent) {
+      val action = intent.action
+      if (action == BluetoothAdapter.ACTION_STATE_CHANGED) {
+        val state = intent.getIntExtra(BluetoothAdapter.EXTRA_STATE,
+                BluetoothAdapter.ERROR)
+        channel.invokeMethod("bluetoothStateChangeCallback", dumpBluetoothState(state))
+      }
+    }
+  }
+
+  val filter = IntentFilter(BluetoothAdapter.ACTION_STATE_CHANGED)
+  context.registerReceiver(mReceiver, filter)
+}
+
 public class FlutterAmazonFreeRTOSPlugin: FlutterPlugin, MethodCallHandler {
 
   override fun onAttachedToEngine(@NonNull flutterPluginBinding: FlutterPlugin.FlutterPluginBinding) {
-    val plugin = FreeRTOSBluetooth(flutterPluginBinding.applicationContext)
-    val channel = createPluginScaffold(
-            flutterPluginBinding.binaryMessenger,
-            "nl.qwic.plugins.flutter_amazon_freertos_plugin",
-            plugin
-    )
-    val mReceiver: BroadcastReceiver = object : BroadcastReceiver() {
-      override fun onReceive(context: Context, intent: Intent) {
-        val action = intent.action
-        if (action == BluetoothAdapter.ACTION_STATE_CHANGED) {
-          val state = intent.getIntExtra(BluetoothAdapter.EXTRA_STATE,
-                  BluetoothAdapter.ERROR)
-          channel.invokeMethod("bluetoothStateChangeCallback", dumpBluetoothState(state))
-        }
-      }
-    }
-
-    val filter = IntentFilter(BluetoothAdapter.ACTION_STATE_CHANGED)
-    flutterPluginBinding.applicationContext.registerReceiver(mReceiver, filter)
+    pluginInitializer(flutterPluginBinding.applicationContext, flutterPluginBinding.binaryMessenger);
   }
 
   // This static function is optional and equivalent to onAttachedToEngine. It supports the old
@@ -50,29 +56,7 @@ public class FlutterAmazonFreeRTOSPlugin: FlutterPlugin, MethodCallHandler {
   companion object {
     @JvmStatic
     fun registerWith(registrar: Registrar) {
-      val plugin = FreeRTOSBluetooth(registrar.context());
-      val channel = createPluginScaffold(
-              registrar.messenger(),
-              "nl.qwic.plugins.flutter_amazon_freertos_plugin",
-              plugin
-      )
-
-      val mReceiver: BroadcastReceiver = object : BroadcastReceiver() {
-        override fun onReceive(context: Context, intent: Intent) {
-          val action = intent.action
-          if (action == BluetoothAdapter.ACTION_STATE_CHANGED) {
-            val state = intent.getIntExtra(BluetoothAdapter.EXTRA_STATE,
-                    BluetoothAdapter.ERROR)
-
-            channel.invokeMethod("bluetoothStateChangeCallback", dumpBluetoothState(state))
-          }
-        }
-      }
-
-      val filter = IntentFilter(BluetoothAdapter.ACTION_STATE_CHANGED)
-      registrar.context().applicationContext.registerReceiver(mReceiver, filter)
-
-
+      pluginInitializer(registrar.context(), registrar.messenger());
     }
   }
 

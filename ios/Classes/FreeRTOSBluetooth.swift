@@ -55,7 +55,7 @@ class FreeRTOSBluetooth {
         discoveredDevicesTimer[id]?.invalidate()
         discoveredDevicesTimer.removeValue(forKey: id)
     }
-    
+        
     func connectToDeviceId(call: FlutterMethodCall, result: @escaping FlutterResult) {
         let args = call.arguments as! [String: Any?]
         let deviceId = args["id"] as! String
@@ -77,13 +77,17 @@ class FreeRTOSBluetooth {
         }
     }
     
-    func listServices(call: FlutterMethodCall, result: @escaping FlutterResult) {
+    func listServicesForDeviceId(call: FlutterMethodCall, result: @escaping FlutterResult) {
         let args = call.arguments as! [String: Any?]
         let deviceId = args["id"] as! String
         
         guard let deviceUUID = UUID(uuidString: deviceId) else { return }
         if let device: AmazonFreeRTOSDevice = awsFreeRTOSManager.devices[deviceUUID] {
-            result(device.peripheral.services)
+            var services: [Any] = []
+            for service in device.peripheral.services ?? [] {
+                services.append(dumpFreeRTOSDeviceServiceInfo(service))
+            }
+            result(services)
         }
     }
     
