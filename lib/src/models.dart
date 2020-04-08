@@ -71,7 +71,6 @@ class FreeRTOSDevice {
     }
 }
 
-
 class BluetoothService {
     final String id;
     final bool isPrimary;
@@ -88,11 +87,35 @@ class BluetoothCharacteristic {
     final bool isNotifying;
     final List<int> value;
     final String serviceId;
+    final BluetoothCharacteristicProperties properties;
 
     BluetoothCharacteristic.fromJson(Map jsonData) 
         :   id = jsonData["id"],
             isNotifying = jsonData["isNotifying"],
             value = jsonData["value"],
+            properties = BluetoothCharacteristicProperties.fromJson(jsonData["properties"]),
             serviceId = jsonData["serviceId"];
+}
 
+class BluetoothCharacteristicProperties {
+    final bool isReadable;
+    final bool isWritable;
+    final bool isWritableWithoutResponse;
+    final bool isNotifying;
+    final bool isIndicatable;
+    final bool allowsSignedWrites;
+    final bool hasExtendedProperties;
+    final bool notifyEncryptionRequired;
+    final bool indicateEncryptionRequired;
+
+    BluetoothCharacteristicProperties.fromJson(Map jsonData)
+        :   isReadable = jsonData["isReadable"],
+            isWritable = jsonData["isWritable"],
+            isWritableWithoutResponse = jsonData["isWritableWithoutResponse"],
+            isNotifying = jsonData["isNotifying"],
+            isIndicatable = jsonData["isIndicatable"],
+            allowsSignedWrites = jsonData["allowsSignedWrites"],
+            hasExtendedProperties = jsonData["hasExtendedProperties"],
+            notifyEncryptionRequired = jsonData["notifyEncryptionRequired"],
+            indicateEncryptionRequired = jsonData["indicateEncryptionRequired"];
 }

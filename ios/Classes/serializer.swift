@@ -36,16 +36,30 @@ func dumpFreeRTOSDeviceServiceInfo(_ service: CBService) -> [String: Any] {
 func dumpServiceCharacteristics(_ service: CBService) -> [[String: Any]] {
     var result: [[String: Any]] = []
     for c in service.characteristics ?? [] {
-        let characteristicProperty = _characteristicPropertiesEnum.firstIndex(of: c.properties)
         result.append([
             "id": c.uuid.uuidString,
             "isNotifying": c.isNotifying,
-            "property": characteristicProperty ?? -1,
             "value": c.value,
             "serviceId": c.service.uuid.uuidString,
+            "properties": dumpCharacteristicProperties(c),
         ])
     }
     return result
+}
+
+func dumpCharacteristicProperties(_ charactertistic: CBCharacteristic) -> [String: Bool] {
+    let properties = charactertistic.properties
+    return [
+        "isReadable": properties.contains(.read),
+        "isWritableWithoutResponse": properties.contains(.writeWithoutResponse),
+        "isWritable": properties.contains(.write),
+        "isNotifying": properties.contains(.notify),
+        "isIndicatable": properties.contains(.indicate),
+        "allowsSignedWrites": properties.contains(.authenticatedSignedWrites),
+        "hasExtendedProperties": properties.contains(.extendedProperties),
+        "notifyEncryptionRequired": properties.contains(.notifyEncryptionRequired),
+        "indicateEncryptionRequired": properties.contains(.indicateEncryptionRequired)
+    ]
 }
 
 //func dumpBlueoothDescriptor(_ descriptor: CBDescriptor) -> [[String: Any]] {
@@ -53,19 +67,6 @@ func dumpServiceCharacteristics(_ service: CBService) -> [[String: Any]] {
 //        "id": descriptor.value
 //    ]
 //}
-
-let _characteristicPropertiesEnum = [
-    CBCharacteristicProperties.broadcast,
-    CBCharacteristicProperties.read,
-    CBCharacteristicProperties.writeWithoutResponse,
-    CBCharacteristicProperties.write,
-    CBCharacteristicProperties.notify,
-    CBCharacteristicProperties.indicate,
-    CBCharacteristicProperties.authenticatedSignedWrites,
-    CBCharacteristicProperties.extendedProperties,
-    CBCharacteristicProperties.notifyEncryptionRequired,
-    CBCharacteristicProperties.indicateEncryptionRequired
-]
 
 let _deviceStateEnum = [
     CBPeripheralState.connected,
