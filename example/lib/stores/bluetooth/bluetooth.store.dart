@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 
 import "package:mobx/mobx.dart";
 import "package:flutter_amazon_freertos_plugin/flutter_amazon_freertos_plugin.dart";
@@ -64,30 +65,36 @@ abstract class _BluetoothStore with Store {
 
   Future<void> startScanning() async {
     try {
-      // Request Runtime Permissions in case they are not granted yet
-      // (needed for Android SDK 23 and higher)
-      var status = await Permission.location.status;
-      switch (status) {
-        case PermissionStatus.permanentlyDenied:
-        {
+      // Location permission needed on Android to scan devices
+      // (Requesting Runtime Permissions needed for Android SDK 23 and higher)
+      // AWSfreeRTOS is using Android SDK 23
+      // https://developer.android.com/distribute/best-practices/develop/runtime-permissions
+      // https://developer.radiusnetworks.com/2015/09/29/is-your-beacon-app-ready-for-android-6.html
+      // Using this Flutter plugin: https://pub.dev/packages/permission_handler#-example-tab-
+      var status = PermissionStatus.undetermined;
+
+      if(Platform.isAndroid){
+        status = await Permission.location.status;
+        if(status == PermissionStatus.permanentlyDenied) {
           // The user opted to never again see the permission request dialog for this
           // app. The only way to change the permission's status now is to let the
           // user manually enable it in the system settings.
           openAppSettings(); 
+          return;
         }
-        break;        
-        case PermissionStatus.granted:
-          {
-            // Either the permission was already granted before or the user just granted it.
-            await amazonFreeRTOSPlugin.startScanForDevices();
-            print("Start scanning for nearby BLE devices");
-          }
-        break;        
-        default:
-          {
-            await Permission.location.request();
-          }
-      }  
+        if(status != PermissionStatus.granted) {
+          // Request the permission if not granted
+          status = await Permission.location.request();
+        }
+      }
+
+      if(
+        Platform.isIOS || 
+        (Platform.isAndroid && status == PermissionStatus.granted)
+      ) {
+        await amazonFreeRTOSPlugin.startScanForDevices();
+        print("Start scanning for nearby BLE devices");
+      }
     } catch (e) {
       print("Error: Failed to start scan startScanning()");
       print(e);
