@@ -43,6 +43,7 @@ class FreeRTOSBluetooth(context: Context) {
 
     // TODO: call result.success until timeout expires, this way we can read them in the listDiscoveredDevices service
     fun startScanForDevices(call: MethodCall, result: MethodChannel.Result) {
+        val timeout = call.argument<Long>("timeout")!!
         awsFreeRTOSManager.startScanDevices(
             object: BleScanResultCallback() {
                 override fun onBleScanResult(scanResult: ScanResult) {
@@ -55,9 +56,8 @@ class FreeRTOSBluetooth(context: Context) {
                     print(errorCode);
                     result.success(errorCode);
                 }
-            }, 10000
+            }, timeout
         )
-
     }
 
     fun stopScanForDevices(call: MethodCall, result: MethodChannel.Result) {
