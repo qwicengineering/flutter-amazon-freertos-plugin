@@ -1,5 +1,6 @@
 package nl.qwic.plugins.flutter_amazon_freertos_plugin
 
+import android.bluetooth.BluetoothDevice
 import android.bluetooth.BluetoothManager
 import android.bluetooth.le.ScanResult
 import android.content.Context
@@ -34,27 +35,37 @@ class FreeRTOSBluetooth(context: Context) {
     private val bluetoothManager = context.getSystemService(Context.BLUETOOTH_SERVICE) as BluetoothManager
     private val bluetoothAdapter = bluetoothManager.adapter
     private val awsFreeRTOSManager = AmazonFreeRTOSManager(context, bluetoothAdapter)!!
+    private val devices = mutableMapOf<String, BluetoothDevice>()
 
     fun bluetoothState(call: MethodCall, result: MethodChannel.Result) {
         result.success(dumpBluetoothState(bluetoothAdapter.state));
     }
 
-    // TODO: Need to store devices to be returned in "listDiscoveredDevices" service
+    // TODO: call result.success until timeout expires, this way we can read them in the listDiscoveredDevices service
     fun startScanForDevices(call: MethodCall, result: MethodChannel.Result) {
         awsFreeRTOSManager.startScanDevices(
             object: BleScanResultCallback() {
                 override fun onBleScanResult(scanResult: ScanResult) {
                     val device = scanResult.device;
-                    print(device);
+                    if(devices[device.name] == null) {
+                        devices[device.name] = device;
+                    }
                 }
                 override fun onBleScanFailed(errorCode: Int) {
                     print(errorCode);
+                    result.success(errorCode);
                 }
             }, 10000
         )
+
+    }
+
+    fun stopScanForDevices(call: MethodCall, result: MethodChannel.Result) {
+        awsFreeRTOSManager.stopScanDevices();
         result.success(null);
     }
-//    fun listDiscoveredDevices(call: MethodCall, result: MethodChannel.Result) {
-//        result.success(Array<Int>(0) {0})
-//    }
+
+    fun listDiscoveredDevices(call: MethodCall, result: MethodChannel.Result) {
+        result.success(devices);
+    }
 }

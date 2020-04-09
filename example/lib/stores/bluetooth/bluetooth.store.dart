@@ -49,6 +49,7 @@ abstract class _BluetoothStore with Store {
         // rescanForDevices() freshes the device list from the platform side.
         try {
             devicesNearby = await amazonFreeRTOSPlugin.discoveredDevices;
+            print("devicesNearby");
             print(devicesNearby);
         } catch (e) {
             print("Error: Failed to retreive nearby devices");
