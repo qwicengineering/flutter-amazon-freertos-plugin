@@ -1,6 +1,5 @@
 package nl.qwic.plugins.flutter_amazon_freertos_plugin
 
-import android.bluetooth.BluetoothDevice
 import android.bluetooth.BluetoothManager
 import android.bluetooth.le.ScanResult
 import android.content.Context
@@ -8,6 +7,7 @@ import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
 import software.amazon.freertos.amazonfreertossdk.AmazonFreeRTOSManager
 import software.amazon.freertos.amazonfreertossdk.BleScanResultCallback
+
 
 /*
 * methodMap: [
@@ -32,10 +32,11 @@ import software.amazon.freertos.amazonfreertossdk.BleScanResultCallback
 * */
 
 class FreeRTOSBluetooth(context: Context) {
+    private val context = context;
     private val bluetoothManager = context.getSystemService(Context.BLUETOOTH_SERVICE) as BluetoothManager
     private val bluetoothAdapter = bluetoothManager.adapter
     private val awsFreeRTOSManager = AmazonFreeRTOSManager(context, bluetoothAdapter)!!
-    private val devices = mutableMapOf<String, BluetoothDevice>()
+    private val devices: MutableMap<String, Map<String, Any>> = mutableMapOf()
 
     fun bluetoothState(call: MethodCall, result: MethodChannel.Result) {
         result.success(dumpBluetoothState(bluetoothAdapter.state));
@@ -48,8 +49,8 @@ class FreeRTOSBluetooth(context: Context) {
             object: BleScanResultCallback() {
                 override fun onBleScanResult(scanResult: ScanResult) {
                     val device = scanResult.device;
-                    if(devices[device.name] == null) {
-                        devices[device.name] = device;
+                    if(!devices.contains(device.address)) {
+                        devices[device.address] = dumpFreeRTOSDeviceInfo(device);
                     }
                 }
                 override fun onBleScanFailed(errorCode: Int) {
@@ -58,6 +59,7 @@ class FreeRTOSBluetooth(context: Context) {
                 }
             }, timeout
         )
+        result.success(null);
     }
 
     fun stopScanForDevices(call: MethodCall, result: MethodChannel.Result) {
@@ -66,6 +68,10 @@ class FreeRTOSBluetooth(context: Context) {
     }
 
     fun listDiscoveredDevices(call: MethodCall, result: MethodChannel.Result) {
-        result.success(devices);
+        result.success(ArrayList(devices.values));
     }
+
+    // connect to a device
+    //awsFreeRTOSManager.connectToDevice()
+    // val awsDevice = AmazonFreeRTOSDevice(device, context, credentialsProvider)
 }
