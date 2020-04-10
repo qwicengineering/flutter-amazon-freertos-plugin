@@ -42,7 +42,7 @@ class FreeRTOSBluetooth(context: Context) {
         result.success(dumpBluetoothState(bluetoothAdapter.state));
     }
 
-    // TODO: call result.success until timeout expires, this way we can read them in the listDiscoveredDevices service
+    // TODO: return found device on every scanResult
     fun startScanForDevices(call: MethodCall, result: MethodChannel.Result) {
         val timeout = call.argument<Long>("timeout")!!
         awsFreeRTOSManager.startScanDevices(
@@ -71,7 +71,7 @@ class FreeRTOSBluetooth(context: Context) {
         result.success(ArrayList(devices.values));
     }
 
-    // connect to a device
-    //awsFreeRTOSManager.connectToDevice()
+    // TODO: connect to a device
+    // awsFreeRTOSManager.connectToDevice()
     // val awsDevice = AmazonFreeRTOSDevice(device, context, credentialsProvider)
 }
