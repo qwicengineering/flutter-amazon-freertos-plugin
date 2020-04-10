@@ -19,8 +19,6 @@ public class SwiftFlutterAmazonFreeRTOSPlugin: NSObject, FlutterPlugin {
                 "rescanForDevices": plugin.rescanForDevices,
                 "connectToDeviceId": plugin.connectToDeviceId,
                 "disconnectFromDeviceId": plugin.disconnectFromDeviceId,
-                "discoverDevicesOnListen": plugin.discoverDevicesOnListen,
-                "discoverDevicesOnCancel": plugin.discoverDevicesOnCancel,
                 "listServicesForDeviceId": plugin.listServicesForDeviceId,
                 "listDiscoveredDevices": plugin.listDiscoveredDevices,
                 "readCharacteristic": plugin.readCharacteristic,

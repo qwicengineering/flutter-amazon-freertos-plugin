@@ -15,8 +15,14 @@ class FreeRTOSBluetooth {
     
     // TODO: Do we need to look for exceptions?
     func startScanForDevices(call: FlutterMethodCall, result: @escaping FlutterResult) {
-        awsFreeRTOSManager.startScanForDevices()
-        result(nil)
+        var advertisingServiceUUIDs: [CBUUID] = awsFreeRTOSManager.advertisingServiceUUIDs
+
+        if let central = awsFreeRTOSManager.central, !central.isScanning {
+            if let args = call.arguments as? [String: Any?], let customServiceUUIDs = args["uuids"] as? [CBUUID] {
+               advertisingServiceUUIDs += customServiceUUIDs
+            }
+            central.scanForPeripherals(withServices: advertisingServiceUUIDs, options: nil)
+        }
     }
     
     // TODO: Do we need to look for exceptions?
@@ -41,19 +47,6 @@ class FreeRTOSBluetooth {
             devices.append(dumpFreeRTOSDeviceInfo(value))
         }
         result(devices)
-    }
-    
-    func discoverDevicesOnListen(id: Int, args: Any?, sink: @escaping FlutterEventSink) {
-        discoveredDevicesTimer[0] = Timer.scheduledTimer(withTimeInterval: args as! Double / 1000, repeats: true ) {_ in
-            for (_, value) in self.awsFreeRTOSManager.devices {
-                sink(dumpFreeRTOSDeviceInfo(value))
-            }
-        }
-    }
-
-    func discoverDevicesOnCancel(id: Int, args: Any?) {
-        discoveredDevicesTimer[id]?.invalidate()
-        discoveredDevicesTimer.removeValue(forKey: id)
     }
         
     func connectToDeviceId(call: FlutterMethodCall, result: @escaping FlutterResult) {

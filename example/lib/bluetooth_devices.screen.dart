@@ -37,6 +37,9 @@ class BluetoothDevicesScreen extends StatelessWidget {
 
         Future<void> _startScanning() async {
             await bluetoothStore.startScanning();
+        }
+
+        Future<void> _getDevices() async {
             await bluetoothStore.getDevicesNearby();
         }
 
@@ -76,10 +79,10 @@ class BluetoothDevicesScreen extends StatelessWidget {
                         children: <Widget>[
                             Text("Bluetooth state: ${bluetoothStore.bluetoothState}\n"),
                             Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceAround,
                                 children: <Widget>[
-                                    OutlineButton(child: Text("Start Scan"), onPressed: _startScanning),
-                                    OutlineButton(child: Text("Stop Scan"), onPressed: _stopScanning),
+                                    OutlineButton(child: Text("Start"), onPressed: bluetoothStore.startScanning),
+                                    OutlineButton(child: Text("Devices"), onPressed: bluetoothStore.getDevicesNearby),
+                                    OutlineButton(child: Text("Stop"), onPressed: _stopScanning),
                                     OutlineButton(child: Text("Sign out"), onPressed: _onPressedSignOut),
                                 ]
                             ),
