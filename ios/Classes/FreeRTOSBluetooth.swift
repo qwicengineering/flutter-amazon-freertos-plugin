@@ -6,7 +6,7 @@ import CoreBluetooth
 
 class FreeRTOSBluetooth {
     let awsFreeRTOSManager = AmazonFreeRTOSManager.shared
-    var discoveredDevicesTimer = [Int: Timer]();
+    var notificationObservers = [Int: [NSObjectProtocol]]()
     
     func bluetoothState(call: FlutterMethodCall, result: @escaping FlutterResult) {
         let state = dumpBluetoothState(awsFreeRTOSManager.central?.state ?? CBManagerState.unknown)
@@ -51,7 +51,7 @@ class FreeRTOSBluetooth {
         
     func connectToDeviceId(call: FlutterMethodCall, result: @escaping FlutterResult) {
         let args = call.arguments as! [String: Any?]
-        let deviceId = args["id"] as! String
+        let deviceId = args["deviceUUID"] as! String
         let reconnect = args["reconnect"] as? Bool ?? true
         
         guard let deviceUUID = UUID(uuidString: deviceId) else { return }
@@ -62,7 +62,7 @@ class FreeRTOSBluetooth {
     
     func disconnectFromDeviceId(call: FlutterMethodCall, result: @escaping FlutterResult) {
         let args = call.arguments as! [String: Any?]
-        let deviceId = args["id"] as! String
+        let deviceId = args["deviceUUID"] as! String
         
         guard let deviceUUID = UUID(uuidString: deviceId) else { return }
         if let device = awsFreeRTOSManager.devices[deviceUUID] {
@@ -70,22 +70,57 @@ class FreeRTOSBluetooth {
         }
     }
     
-    func listServicesForDeviceId(call: FlutterMethodCall, result: @escaping FlutterResult) {
+    func deviceState(call: FlutterMethodCall, result: @escaping FlutterResult) {
         let args = call.arguments as! [String: Any?]
-        let deviceId = args["id"] as! String
+        let deviceUUIDString = args["deviceUUID"] as! String
         
-        guard let deviceUUID = UUID(uuidString: deviceId) else { return }
-        if let device: AmazonFreeRTOSDevice = awsFreeRTOSManager.devices[deviceUUID] {
-            var services: [Any] = []
-            for service in device.peripheral.services ?? [] {
-                services.append(dumpFreeRTOSDeviceServiceInfo(service))
-            }
-            result(services)
+        guard let device = getDevice(uuidString: deviceUUIDString) else { return }
+        result(dumpDeviceState(device.peripheral.state))
+    }
+    
+    func deviceStateOnListen(id: Int, args: Any?, sink: @escaping FlutterEventSink) {
+        let deviceUUIDString = args as? String ?? ""
+        let deviceUUID = UUID(uuidString: deviceUUIDString)
+
+        // FreeRTOS BLE Central Manager didUpdateState
+        let connectObeserver = NotificationCenter.default.addObserver(forName: .afrCentralManagerDidConnectDevice, object: nil, queue: nil) { notification in
+            let notificationDeviceUUID = notification.userInfo?["identifier"] as! UUID
+            guard
+                deviceUUID == notificationDeviceUUID,
+                let device = self.awsFreeRTOSManager.devices[notificationDeviceUUID] else { return }
+            sink(dumpDeviceState(device.peripheral.state))
+        }
+                
+        // FreeRTOS BLE Central Manager didUpdateState
+        let disconnectObserver = NotificationCenter.default.addObserver(forName: .afrCentralManagerDidDisconnectDevice, object: nil, queue: nil) { notification in
+            let notificationDeviceUUID = notification.userInfo?["identifier"] as! UUID
+            guard
+                deviceUUID == notificationDeviceUUID,
+                let device = self.awsFreeRTOSManager.devices[notificationDeviceUUID] else { return }
+            sink(dumpDeviceState(device.peripheral.state))
+        }
+        
+        notificationObservers[id] = [connectObeserver, disconnectObserver]
+    }
+    
+    func deviceStateOnCancel(id: Int, args: Any?) {
+        guard let observers = notificationObservers[id] else { return }
+        for obeserver in observers { 
+            NotificationCenter.default.removeObserver(obeserver)
         }
     }
     
-    func readCharacteristic(call: FlutterMethodCall, result: @escaping FlutterResult) {
-        result(FlutterMethodNotImplemented)
+    func listServicesForDevice(call: FlutterMethodCall, result: @escaping FlutterResult) {
+        guard let args = call.arguments as? [String: Any?] else { return }
+        
+        let deviceUUIDString = args["deviceUUID"] as! String
+        guard let device = getDevice(uuidString: deviceUUIDString) else { return }
+        
+        var services: [Any] = []
+        for service in device.peripheral.services ?? [] {
+            services.append(dumpFreeRTOSDeviceServiceInfo(service))
+        }
+        result(services)
     }
     
     func readDescriptor(call: FlutterMethodCall, result: @escaping FlutterResult) {
@@ -97,7 +132,23 @@ class FreeRTOSBluetooth {
     }
     
     func writeCharacteristic(call: FlutterMethodCall, result: @escaping FlutterResult) {
-        result (FlutterMethodNotImplemented)
+        guard let args = call.arguments as? [String: Any?] else { return }
+        let value = args["value"] as! FlutterStandardTypedData
+        
+        let deviceUUIDString = args["deviceUUID"] as! String
+        guard let device = getDevice(uuidString: deviceUUIDString) else { return }
+        
+        let serviceUUIDString = args["serviceUUID"] as! String
+        let serviceUUID = CBUUID(string: serviceUUIDString)
+        guard let service = device.peripheral.serviceOf(uuid: serviceUUID) else { return }
+        
+        let characteristicUUIDString = args["characteristicUUID"] as! String
+        let characteristicUUID = CBUUID(string: characteristicUUIDString)
+        guard let characteristic = service.characteristicOf(uuid: characteristicUUID) else { return }
+        
+        // Harcoding .withResponse for now.
+        // TODO: Retreive .withResponse as from call.arguments
+        device.peripheral.writeValue(value.data, for: characteristic, type: .withResponse)
     }
     
     func setNotification(call: FlutterMethodCall, result: @escaping FlutterResult) {
@@ -148,6 +199,16 @@ class FreeRTOSBluetooth {
             
             return task
         }
+    }
+    
+    // Helper functions
+
+    func getDevice(uuidString: String) -> AmazonFreeRTOSDevice? {
+        guard let deviceUUID = UUID(uuidString: uuidString),
+            let device = awsFreeRTOSManager.devices[deviceUUID]
+            else { return nil }
+        
+        return device
     }
     
 }

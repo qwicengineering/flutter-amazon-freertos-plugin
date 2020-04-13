@@ -6,7 +6,7 @@ func dumpFreeRTOSDeviceInfo(_ device: AmazonFreeRTOSDevice) -> [String: Any] {
     let deviceState = _deviceStateEnum.firstIndex(of: device.peripheral.state)!
 
     return [
-        "id": device.peripheral.identifier.uuidString,
+        "uuid": device.peripheral.identifier.uuidString,
         "name": device.advertisementData?["kCBAdvDataLocalName"] as? String ?? device.peripheral.name!,
         "state": deviceState,
         "reconnect": device.reconnect,
@@ -18,7 +18,7 @@ func dumpFreeRTOSDeviceInfo(_ device: AmazonFreeRTOSDevice) -> [String: Any] {
 }
 
 func dumpFreeRTOSDeviceServiceInfo(_ service: CBService) -> [String: Any] {
-    var primaryServiceMap: [String: Any] = ["id": service.uuid.uuidString, "isPrimary": service.isPrimary]
+    var primaryServiceMap: [String: Any] = ["uuid": service.uuid.uuidString, "isPrimary": service.isPrimary]
     primaryServiceMap["characteristics"] = dumpServiceCharacteristics(service)
     primaryServiceMap["includedServices"] = []
 
@@ -37,7 +37,7 @@ func dumpServiceCharacteristics(_ service: CBService) -> [[String: Any]] {
     var result: [[String: Any]] = []
     for c in service.characteristics ?? [] {
         result.append([
-            "id": c.uuid.uuidString,
+            "uuid": c.uuid.uuidString,
             "isNotifying": c.isNotifying,
             "value": c.value,
             "serviceId": c.service.uuid.uuidString,
@@ -86,4 +86,8 @@ let _bluetoothStateEnum = [
 
 func dumpBluetoothState(_ state: CBManagerState) -> Int {
     return _bluetoothStateEnum.firstIndex(of: state)!
+}
+
+func dumpDeviceState(_ state: CBPeripheralState) -> Int {
+    return _deviceStateEnum.firstIndex(of: state)!
 }
