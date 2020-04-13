@@ -5,6 +5,7 @@ import "package:flutter_amazon_freertos_plugin_example/widgets/start.widget.dart
 import "package:provider/provider.dart";
 
 import "bluetooth_devices.screen.dart";
+import "bluetooth_device.screen.dart";
 import "stores/auth/auth_form.store.dart";
 import "stores/cognito/cognito.store.dart";
 import "login.screen.dart";
@@ -30,7 +31,8 @@ class MyApp extends StatelessWidget {
                 routes: {
                     "/login": (context) => LoginScreen(),
                     "/verifyUser": (context) => VerifyUserScreen(),
-                    "/bluetoothDevices": (context) => BluetoothDevicesScreen()
+                    "/bluetoothDevices": (context) => BluetoothDevicesScreen(),
+                    "/bluetoothDevice": (context) => BluetoothDeviceScreen(),
                 },
             ),
         );

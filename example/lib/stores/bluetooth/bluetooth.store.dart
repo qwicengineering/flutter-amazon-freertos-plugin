@@ -19,6 +19,9 @@ abstract class _BluetoothStore with Store {
     @observable
     List<FreeRTOSDevice> devicesNearby = [];
 
+    @observable
+    FreeRTOSDevice activeDevice;
+
     @action
     Future<void> initialize() async {
         try {
@@ -115,6 +118,15 @@ abstract class _BluetoothStore with Store {
         } catch (e) {
             print("Error: Failed to rescan rescanForDevices()");
             print(e);
+        }
+    }
+
+    Future<void> connectDevice(FreeRTOSDevice device) async {
+        try {
+            device.connect();
+            activeDevice = device;
+        } catch (e) {
+            print("Unable to connect to device");
         }
     }
 
