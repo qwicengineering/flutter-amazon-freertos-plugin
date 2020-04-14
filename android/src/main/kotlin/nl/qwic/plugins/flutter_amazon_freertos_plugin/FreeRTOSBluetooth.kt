@@ -38,12 +38,7 @@ class FreeRTOSBluetooth(context: Context) {
     private val awsFreeRTOSManager = AmazonFreeRTOSManager(context, bluetoothAdapter)!!
     private val devices: MutableMap<String, Map<String, Any>> = mutableMapOf()
 
-    fun bluetoothState(call: MethodCall, result: MethodChannel.Result) {
-        result.success(dumpBluetoothState(bluetoothAdapter.state));
-    }
-
-    // TODO: return found device on every scanResult
-    fun startScanForDevices(call: MethodCall, result: MethodChannel.Result) {
+    private fun scanDevices() {
         awsFreeRTOSManager.startScanDevices(
             object: BleScanResultCallback() {
                 override fun onBleScanResult(scanResult: ScanResult) {
@@ -54,10 +49,18 @@ class FreeRTOSBluetooth(context: Context) {
                 }
                 override fun onBleScanFailed(errorCode: Int) {
                     print(errorCode);
-                    result.success(errorCode);
                 }
             }, 0
         )
+    }
+
+    fun bluetoothState(call: MethodCall, result: MethodChannel.Result) {
+        result.success(dumpBluetoothState(bluetoothAdapter.state));
+    }
+
+    // TODO: return found device on every scanResult
+    fun startScanForDevices(call: MethodCall, result: MethodChannel.Result) {
+        scanDevices();
         result.success(null);
     }
 
@@ -67,8 +70,9 @@ class FreeRTOSBluetooth(context: Context) {
     }
 
     fun rescanForDevices(call: MethodCall, result: MethodChannel.Result) {
+        awsFreeRTOSManager.stopScanDevices();
         devices.clear();
-        startScanForDevices(call, result);
+        scanDevices();
         result.success(null)
     }
 
