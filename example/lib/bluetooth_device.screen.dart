@@ -1,4 +1,5 @@
 import "dart:async";
+import "dart:typed_data";
 
 import "package:flutter/material.dart";
 import "package:flutter_amazon_freertos_plugin_example/stores/bluetooth/bluetooth.store.dart";
@@ -8,7 +9,6 @@ import "package:provider/provider.dart";
 import "package:flutter_amazon_freertos_plugin/flutter_amazon_freertos_plugin.dart";
 
 class BluetoothDeviceScreen extends StatelessWidget {
-
     @override
     Widget build(BuildContext context)  {
         final bluetoothStore = Provider.of<BluetoothStore>(context);
@@ -27,6 +27,33 @@ class BluetoothDeviceScreen extends StatelessWidget {
                 Timer(Duration(seconds: 3), () async => print(await device.discoverServices()));
             }
         });
+
+        void _writeToCharacteristic(int value) async {
+            // start counter = 0
+            // stop counter = 1
+            // reset counter = 2
+            var services = await device.discoverServices();
+            var characteristics = services.firstWhere((service) => service.uuid.toString().toLowerCase() == bluetoothStore.demoService).characteristics;
+            if (characteristics.length < 0) {
+                print("No characteristics found");
+                return;
+            }
+
+            BluetoothCharacteristic customChar = characteristics.firstWhere((c) => c.uuid.toString().toLowerCase() == bluetoothStore.demoWrite);
+            customChar.writeValue(Uint8List.fromList([value]));
+        }
+
+        void _readCharacteristic() async {
+            var services = await device.discoverServices();
+            var characteristics = services.firstWhere((service) => service.uuid.toString().toLowerCase() == bluetoothStore.demoService).characteristics;
+            if (characteristics.length < 0) {
+                print("No characteristics found");
+                return;
+            }
+
+            BluetoothCharacteristic customChar = characteristics.firstWhere((c) => c.uuid.toString().toLowerCase() == bluetoothStore.demoRead);
+            print(decodeToInt(customChar.value));
+        }
 
         void _disconnect() async {
             stateSubscription.cancel();
@@ -48,12 +75,12 @@ class BluetoothDeviceScreen extends StatelessWidget {
                             Text("rssi: ${device.rssi}"),
                             Text("mtu: ${device.mtu}"),
                             Text("reconnect: ${device.reconnect}"),
-                            Row(
+                            Column(
                                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                                 children: <Widget>[
-                                    OutlineButton(child: Text("Start"), onPressed: (){},),
-                                    OutlineButton(child: Text("Stop"), onPressed: (){},),
-                                    OutlineButton(child: Text("Reset"), onPressed: (){},)
+                                    OutlineButton(child: Text("Start"), onPressed: Function.apply(_writeToCharacteristic, [0]),),
+                                    OutlineButton(child: Text("Stop"), onPressed: Function.apply(_writeToCharacteristic, [1]),),
+                                    OutlineButton(child: Text("Reset"), onPressed: Function.apply(_writeToCharacteristic, [2]),)
                                 ],
                             ),
                             Row(

@@ -13,12 +13,6 @@ class BluetoothStore = _BluetoothStore with _$BluetoothStore;
 abstract class _BluetoothStore with Store {
     FlutterAmazonFreeRTOSPlugin amazonFreeRTOSPlugin = FlutterAmazonFreeRTOSPlugin.instance;
 
-    // AmazonFreeRTOS GATT Server Demo
-    // https://docs.aws.amazon.com/freertos/latest/userguide/ble-demo.html#ble-demo-server
-    final String demoService = "c6f2d9e3-49e7-4125-9014-bfc6d669ff00";
-    final String demoRead = "c6f2d9e3-49e7-4125-9014-bfc6d669ff01";
-    final String demoWrite = "c6f2d9e3-49e7-4125-9014-bfc6d669ff02";
-
     @observable
     BluetoothState bluetoothState = BluetoothState.UNKNOWN;
 
@@ -135,6 +129,12 @@ abstract class _BluetoothStore with Store {
             print("Unable to connect to device");
         }
     }
+
+    // AmazonFreeRTOS GATT Server Demo
+    // https://docs.aws.amazon.com/freertos/latest/userguide/ble-demo.html#ble-demo-server
+    String get demoService => "c6f2d9e3-49e7-4125-9014-bfc6d669ff00";
+    String get demoRead => "c6f2d9e3-49e7-4125-9014-bfc6d669ff01";
+    String get demoWrite => "c6f2d9e3-49e7-4125-9014-bfc6d669ff02";
 
     @computed
     bool get isBluetoothSupportedAndOn => bluetoothState == BluetoothState.POWERED_ON;

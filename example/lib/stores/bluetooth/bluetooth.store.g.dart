@@ -70,21 +70,21 @@ mixin _$BluetoothStore on _BluetoothStore, Store {
   final _$initializeAsyncAction = AsyncAction('initialize');
 
   @override
-  Future initialize() {
+  Future<void> initialize() {
     return _$initializeAsyncAction.run(() => super.initialize());
   }
 
   final _$getDevicesNearbyAsyncAction = AsyncAction('getDevicesNearby');
 
   @override
-  Future getDevicesNearby() {
+  Future<void> getDevicesNearby() {
     return _$getDevicesNearbyAsyncAction.run(() => super.getDevicesNearby());
   }
 
   final _$stopScanningAsyncAction = AsyncAction('stopScanning');
 
   @override
-  Future stopScanning() {
+  Future<void> stopScanning() {
     return _$stopScanningAsyncAction.run(() => super.stopScanning());
   }
 
