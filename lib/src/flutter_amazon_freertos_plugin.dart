@@ -29,8 +29,8 @@ class FlutterAmazonFreeRTOSPlugin {
         });
     }
 
-    Future<void> startScanForDevices({int timeout = 10000}) async {
-        await channel.invokeMethod("startScanForDevices", { "timeout": timeout });
+    Future<void> startScanForDevices() async {
+        await channel.invokeMethod("startScanForDevices");
     }
 
     Future<void> stopScanForDevices() async {

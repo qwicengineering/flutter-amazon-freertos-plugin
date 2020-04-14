@@ -90,7 +90,7 @@ abstract class _BluetoothStore with Store {
                 Platform.isIOS || 
                 (Platform.isAndroid && status == PermissionStatus.granted)
             ) {
-                await amazonFreeRTOSPlugin.startScanForDevices(timeout: 3000);
+                await amazonFreeRTOSPlugin.startScanForDevices();
                 print("Start scanning for nearby BLE devices");
             }
         } catch (e) {
