@@ -44,6 +44,9 @@ class FreeRTOSDevice {
         await _channel.invokeMethod("disconnectFromDeviceId", { "deviceUUID": uuid });
     }
 
+    // Will not be able to retreive custom services on iOS
+    // until periperal.discoverServices() is called again
+    // on device connect. 
     Future<List> discoverServices() async {
         var services = await _channel.invokeListMethod("listServicesForDeviceId", { "deviceUUID": uuid });
         return List<BluetoothService>.from(
@@ -57,7 +60,7 @@ class FreeRTOSDevice {
         await _channel.invokeListMethod("discoverCharactersitics");
     }
 
-    Stream<FreeRTOSDeviceState> observeDeviceState() {
+    Stream<FreeRTOSDeviceState> observeState() {
         return PluginScaffold.createStream(_channel, "deviceState", uuid)
                 .map((value) => FreeRTOSDeviceState.values[value]);
     }
@@ -70,29 +73,45 @@ class FreeRTOSDevice {
 
 class BluetoothService {
     final String uuid;
+    final String deviceUUID;
     final bool isPrimary;
     final List characteristics;
 
     BluetoothService.fromJson(Map jsonData)
         :   uuid = jsonData["uuid"],
             isPrimary = jsonData["isPrimary"],
+            deviceUUID = jsonData["deviceUUID"],
             characteristics = jsonData["characteristics"].map((c) =>  BluetoothCharacteristic.fromJson(c) ).toList();
-
 }
 
 class BluetoothCharacteristic {
     final String uuid;
+    final String serviceUUID;
+    final String deviceUUID;
     final bool isNotifying;
-    final List<int> value;
-    final String serviceId;
+    final Uint8List value;
     final BluetoothCharacteristicProperties properties;
+
+    final _channel = FlutterAmazonFreeRTOSPlugin.instance.channel;
 
     BluetoothCharacteristic.fromJson(Map jsonData) 
         :   uuid = jsonData["uuid"],
+            serviceUUID = jsonData["serviceUUID"],
+            deviceUUID = jsonData["deviceUUID"],
             isNotifying = jsonData["isNotifying"],
             value = jsonData["value"],
-            properties = BluetoothCharacteristicProperties.fromJson(jsonData["properties"]),
-            serviceId = jsonData["serviceId"];
+            properties = BluetoothCharacteristicProperties.fromJson(jsonData["properties"]);
+
+    Future<void> writeValue(Uint8List value) async {
+        await _channel.invokeMethod("writeCharacteristic", 
+            { 
+                "deviceUUID": deviceUUID,
+                "serviceUUID": serviceUUID,
+                "characteristicUUID": uuid,
+                "value": value
+            }
+        );
+    }
 }
 
 class BluetoothCharacteristicProperties {

@@ -1,7 +1,9 @@
-import 'package:flutter/material.dart';
-import 'package:flutter_amazon_freertos_plugin_example/stores/bluetooth/bluetooth.store.dart';
-import 'package:flutter_mobx/flutter_mobx.dart';
-import 'package:provider/provider.dart';
+import "dart:async";
+
+import "package:flutter/material.dart";
+import "package:flutter_amazon_freertos_plugin_example/stores/bluetooth/bluetooth.store.dart";
+import "package:flutter_mobx/flutter_mobx.dart";
+import "package:provider/provider.dart";
 
 import "package:flutter_amazon_freertos_plugin/flutter_amazon_freertos_plugin.dart";
 
@@ -12,8 +14,18 @@ class BluetoothDeviceScreen extends StatelessWidget {
         final bluetoothStore = Provider.of<BluetoothStore>(context);
         FreeRTOSDevice device = bluetoothStore.activeDevice;
 
-        final stateSubscription = device.observeDeviceState().listen((value) {
-            print(value);
+        void _discoverServices() async {
+            var services = await device.discoverServices();
+            print(services);
+        }
+
+        final stateSubscription = device.observeState().listen((value) async {
+            if (value == FreeRTOSDeviceState.CONNECTED) {
+                // Need to wait for 3 seconds due to Amazon GATT server
+                // demo requiring extra steps to get fully connected
+                // as it required a user verification
+                Timer(Duration(seconds: 3), () async => print(await device.discoverServices()));
+            }
         });
 
         void _disconnect() async {
@@ -25,7 +37,7 @@ class BluetoothDeviceScreen extends StatelessWidget {
         return Observer(name: "BluetoothDevice",
             builder: (_) => Scaffold(
                 appBar: AppBar(
-                    title: Text("Bluetooth Device"),
+                    title: Text("${device.name}"),
                 ),
                 body: Container(
                     padding: EdgeInsets.all(10),
@@ -33,11 +45,21 @@ class BluetoothDeviceScreen extends StatelessWidget {
                         crossAxisAlignment: CrossAxisAlignment.center,
                         children: <Widget>[
                             Text("uuid: ${device.uuid}"),
-                            Text("name: ${device.name}"),
                             Text("rssi: ${device.rssi}"),
                             Text("mtu: ${device.mtu}"),
-                            Column(
+                            Text("reconnect: ${device.reconnect}"),
+                            Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                                 children: <Widget>[
+                                    OutlineButton(child: Text("Start"), onPressed: (){},),
+                                    OutlineButton(child: Text("Stop"), onPressed: (){},),
+                                    OutlineButton(child: Text("Reset"), onPressed: (){},)
+                                ],
+                            ),
+                            Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                                children: <Widget>[
+                                    OutlineButton(child: Text("services"), onPressed: _discoverServices,),
                                     OutlineButton(child: Text("disconnect"), onPressed: _disconnect)
                                 ],
                             )

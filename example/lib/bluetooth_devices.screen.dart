@@ -11,7 +11,7 @@ class BluetoothDevicesScreen extends StatelessWidget {
     @override
     Widget build(BuildContext context) {
         final cognitoStore = Provider.of<CognitoStore>(context);
-        final bluetoothStore = Provider.of<BluetoothStore>(context); 
+        final bluetoothStore = Provider.of<BluetoothStore>(context);
 
         // TODO: I'm not sure if this is the best place to initialize
         bluetoothStore.initialize();
@@ -35,22 +35,17 @@ class BluetoothDevicesScreen extends StatelessWidget {
             }
         }
 
-        Future<void> _startScanning() async {
-            await bluetoothStore.startScanning();
-        }
-
-        Future<void> _getDevices() async {
-            await bluetoothStore.getDevicesNearby();
-        }
-
         Widget _buildDeviceContainer(BuildContext context, int index) {
             FreeRTOSDevice device = bluetoothStore.devicesNearby[index];
 
             return InkWell(
                 onTap: () async {
-                    device.connect();
-                    var services = await device.discoverServices();
-                    print(services);
+                    var isConnected = await device.isConnected;
+                    if (!isConnected) {
+                        await bluetoothStore.connectDevice(device);
+                    }
+
+                    Navigator.pushNamed(context, "/bluetoothDevice");
                 },
                 splashColor: Colors.amberAccent,
                 child: Container(

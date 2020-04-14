@@ -18,7 +18,7 @@ class FreeRTOSBluetooth {
         var advertisingServiceUUIDs: [CBUUID] = awsFreeRTOSManager.advertisingServiceUUIDs
 
         if let central = awsFreeRTOSManager.central, !central.isScanning {
-            if let args = call.arguments as? [String: Any?], let customServiceUUIDs = args["uuids"] as? [CBUUID] {
+            if let args = call.arguments as? [String: Any?], let customServiceUUIDs = args["serviceUUIDS"] as? [CBUUID] {
                advertisingServiceUUIDs += customServiceUUIDs
             }
             central.scanForPeripherals(withServices: advertisingServiceUUIDs, options: nil)
@@ -33,8 +33,21 @@ class FreeRTOSBluetooth {
     
     // TODO: Do we need to look for exceptions?
     func rescanForDevices(call: FlutterMethodCall, result: @escaping FlutterResult) {
-        awsFreeRTOSManager.rescanForDevices()
-        result(nil)
+        awsFreeRTOSManager.stopScanForDevices()
+
+        for device in awsFreeRTOSManager.devices.values {
+            device.disconnect()
+        }
+        awsFreeRTOSManager.devices.removeAll()
+
+        var advertisingServiceUUIDs: [CBUUID] = awsFreeRTOSManager.advertisingServiceUUIDs
+
+        if let central = awsFreeRTOSManager.central, !central.isScanning {
+            if let args = call.arguments as? [String: Any?], let customServiceUUIDs = args["serviceUUIDS"] as? [CBUUID] {
+               advertisingServiceUUIDs += customServiceUUIDs
+            }
+            central.scanForPeripherals(withServices: advertisingServiceUUIDs, options: nil)
+        }
     }
 
     // Discovered devices are usually cached. If there is a new device,

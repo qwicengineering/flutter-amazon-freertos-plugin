@@ -18,7 +18,7 @@ func dumpFreeRTOSDeviceInfo(_ device: AmazonFreeRTOSDevice) -> [String: Any] {
 }
 
 func dumpFreeRTOSDeviceServiceInfo(_ service: CBService) -> [String: Any] {
-    var primaryServiceMap: [String: Any] = ["uuid": service.uuid.uuidString, "isPrimary": service.isPrimary]
+    var primaryServiceMap: [String: Any] = ["uuid": service.uuid.uuidString, "isPrimary": service.isPrimary, "deviceUUID": service.peripheral.identifier.uuidString]
     primaryServiceMap["characteristics"] = dumpServiceCharacteristics(service)
     primaryServiceMap["includedServices"] = []
 
@@ -40,7 +40,8 @@ func dumpServiceCharacteristics(_ service: CBService) -> [[String: Any]] {
             "uuid": c.uuid.uuidString,
             "isNotifying": c.isNotifying,
             "value": c.value,
-            "serviceId": c.service.uuid.uuidString,
+            "serviceUUID": c.service.uuid.uuidString,
+            "deviceUUID": c.service.peripheral.identifier.uuidString,
             "properties": dumpCharacteristicProperties(c),
         ])
     }

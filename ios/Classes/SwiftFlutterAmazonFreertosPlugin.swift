@@ -37,5 +37,13 @@ public class SwiftFlutterAmazonFreeRTOSPlugin: NSObject, FlutterPlugin {
             let state = dumpBluetoothState(plugin.awsFreeRTOSManager.central?.state ?? CBManagerState.unknown)
             channel.invokeMethod("bluetoothStateChangeCallback", arguments: state)
         }
+        
+        // FreeRTOS BLE Central Manager didConnectDevice
+        // Discover all custom services
+        NotificationCenter.default.addObserver(forName: .afrCentralManagerDidConnectDevice, object: nil, queue: nil) { notification in
+            let deviceUUID = notification.userInfo?["identifier"] as! UUID
+            guard let device = plugin.awsFreeRTOSManager.devices[deviceUUID] else { return }
+            device.peripheral.discoverServices([])
+        }
     }
 }
