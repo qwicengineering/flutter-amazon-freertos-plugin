@@ -78,9 +78,10 @@ class BluetoothDeviceScreen extends StatelessWidget {
                             Column(
                                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                                 children: <Widget>[
-                                    OutlineButton(child: Text("Start"), onPressed: Function.apply(_writeToCharacteristic, [0]),),
-                                    OutlineButton(child: Text("Stop"), onPressed: Function.apply(_writeToCharacteristic, [1]),),
-                                    OutlineButton(child: Text("Reset"), onPressed: Function.apply(_writeToCharacteristic, [2]),)
+                                    OutlineButton(child: Text("Start"), onPressed: () => _writeToCharacteristic(0),),
+                                    OutlineButton(child: Text("Stop"), onPressed: () => _writeToCharacteristic(1),),
+                                    OutlineButton(child: Text("Reset"), onPressed: () => _writeToCharacteristic(2),),
+                                    OutlineButton(child: Text("Read"), onPressed: _readCharacteristic,)
                                 ],
                             ),
                             Row(
