@@ -29,3 +29,24 @@ fun dumpBluetoothState(state: Int): Int {
         }
     }
 }
+
+// Device states in iOS
+//val _deviceStateEnum = [
+//    CBPeripheralState.connected,
+//    CBPeripheralState.connecting,
+//    CBPeripheralState.disconnected,
+//    CBPeripheralState.disconnecting
+//]
+
+fun dumpFreeRTOSDeviceInfo(device: BluetoothDevice): Map<String, Any> {
+    return mapOf(
+        "id" to device.address,
+        "name" to device.name,
+        "state" to 2, // DISCONNECTED
+        "reconnect" to false,
+        "rssi" to 0,
+        "certificateId" to "",
+        "brokerEndpoint" to "",
+        "mtu" to 0
+    )
+}
