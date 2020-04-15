@@ -50,6 +50,23 @@ mixin _$BluetoothStore on _BluetoothStore, Store {
     }, _$devicesNearbyAtom, name: '${_$devicesNearbyAtom.name}_set');
   }
 
+  final _$activeDeviceAtom = Atom(name: '_BluetoothStore.activeDevice');
+
+  @override
+  FreeRTOSDevice get activeDevice {
+    _$activeDeviceAtom.context.enforceReadPolicy(_$activeDeviceAtom);
+    _$activeDeviceAtom.reportObserved();
+    return super.activeDevice;
+  }
+
+  @override
+  set activeDevice(FreeRTOSDevice value) {
+    _$activeDeviceAtom.context.conditionallyRunInAction(() {
+      super.activeDevice = value;
+      _$activeDeviceAtom.reportChanged();
+    }, _$activeDeviceAtom, name: '${_$activeDeviceAtom.name}_set');
+  }
+
   final _$initializeAsyncAction = AsyncAction('initialize');
 
   @override
@@ -87,7 +104,7 @@ mixin _$BluetoothStore on _BluetoothStore, Store {
   @override
   String toString() {
     final string =
-        'bluetoothState: ${bluetoothState.toString()},devicesNearby: ${devicesNearby.toString()},isBluetoothSupportedAndOn: ${isBluetoothSupportedAndOn.toString()}';
+        'bluetoothState: ${bluetoothState.toString()},devicesNearby: ${devicesNearby.toString()},activeDevice: ${activeDevice.toString()},isBluetoothSupportedAndOn: ${isBluetoothSupportedAndOn.toString()}';
     return '{$string}';
   }
 }

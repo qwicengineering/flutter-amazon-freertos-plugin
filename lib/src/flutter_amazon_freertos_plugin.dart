@@ -29,16 +29,16 @@ class FlutterAmazonFreeRTOSPlugin {
         });
     }
 
-    Future<void> startScanForDevices() async {
-        await channel.invokeMethod("startScanForDevices");
+    Future<void> startScanForDevices([List<String> serviceUUIDS = const []]) async {
+        await channel.invokeMethod("startScanForDevices", { "serviceUUIDS": serviceUUIDS });
     }
 
     Future<void> stopScanForDevices() async {
         await channel.invokeMethod("stopScanForDevices");
     }
 
-    Future<void> rescanForDevices() async {
-        await channel.invokeMethod("rescanForDevices");
+    Future<void> rescanForDevices([List<String> serviceUUIDS = const []]) async {
+        await channel.invokeMethod("rescanForDevices", { "servieUUIDS": serviceUUIDS });
     }
 
     Future<List<FreeRTOSDevice>> get discoveredDevices async {

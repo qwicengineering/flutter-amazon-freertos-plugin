@@ -11,7 +11,7 @@ class BluetoothDevicesScreen extends StatelessWidget {
     @override
     Widget build(BuildContext context) {
         final cognitoStore = Provider.of<CognitoStore>(context);
-        final bluetoothStore = Provider.of<BluetoothStore>(context); 
+        final bluetoothStore = Provider.of<BluetoothStore>(context);
 
         // TODO: I'm not sure if this is the best place to initialize
         bluetoothStore.initialize();
@@ -35,22 +35,17 @@ class BluetoothDevicesScreen extends StatelessWidget {
             }
         }
 
-        Future<void> _startScanning() async {
-            await bluetoothStore.startScanning();            
-        }
-
-        Future<void> _getDevicesNearby() async {
-            await bluetoothStore.getDevicesNearby();
-        }
-
         Widget _buildDeviceContainer(BuildContext context, int index) {
             FreeRTOSDevice device = bluetoothStore.devicesNearby[index];
 
             return InkWell(
                 onTap: () async {
-                    device.connect();
-                    var services = await device.discoverServices();
-                    print(services);
+                    var isConnected = await device.isConnected;
+                    if (!isConnected) {
+                        await bluetoothStore.connectDevice(device);
+                    }
+
+                    Navigator.pushNamed(context, "/bluetoothDevice");
                 },
                 splashColor: Colors.amberAccent,
                 child: Container(
@@ -78,12 +73,11 @@ class BluetoothDevicesScreen extends StatelessWidget {
                     child: Column(
                         children: <Widget>[
                             Text("Bluetooth state: ${bluetoothStore.bluetoothState}\n"),
-                            Column(
-                                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                            Row(
                                 children: <Widget>[
-                                    OutlineButton(child: Text("Start Scan"), onPressed: _startScanning),
-                                    OutlineButton(child: Text("Stop Scan"), onPressed: _stopScanning),
-                                    OutlineButton(child: Text("Get Devices Nearby"), onPressed: _getDevicesNearby),
+                                    OutlineButton(child: Text("Start"), onPressed: bluetoothStore.startScanning),
+                                    OutlineButton(child: Text("Devices"), onPressed: bluetoothStore.getDevicesNearby),
+                                    OutlineButton(child: Text("Stop"), onPressed: _stopScanning),
                                     OutlineButton(child: Text("Sign out"), onPressed: _onPressedSignOut),
                                 ]
                             ),

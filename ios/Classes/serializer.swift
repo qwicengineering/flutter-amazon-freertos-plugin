@@ -6,7 +6,7 @@ func dumpFreeRTOSDeviceInfo(_ device: AmazonFreeRTOSDevice) -> [String: Any] {
     let deviceState = _deviceStateEnum.firstIndex(of: device.peripheral.state)!
 
     return [
-        "id": device.peripheral.identifier.uuidString,
+        "uuid": device.peripheral.identifier.uuidString,
         "name": device.advertisementData?["kCBAdvDataLocalName"] as? String ?? device.peripheral.name!,
         "state": deviceState,
         "reconnect": device.reconnect,
@@ -18,7 +18,7 @@ func dumpFreeRTOSDeviceInfo(_ device: AmazonFreeRTOSDevice) -> [String: Any] {
 }
 
 func dumpFreeRTOSDeviceServiceInfo(_ service: CBService) -> [String: Any] {
-    var primaryServiceMap: [String: Any] = ["id": service.uuid.uuidString, "isPrimary": service.isPrimary]
+    var primaryServiceMap: [String: Any] = ["uuid": service.uuid.uuidString, "isPrimary": service.isPrimary, "deviceUUID": service.peripheral.identifier.uuidString]
     primaryServiceMap["characteristics"] = dumpServiceCharacteristics(service)
     primaryServiceMap["includedServices"] = []
 
@@ -36,16 +36,31 @@ func dumpFreeRTOSDeviceServiceInfo(_ service: CBService) -> [String: Any] {
 func dumpServiceCharacteristics(_ service: CBService) -> [[String: Any]] {
     var result: [[String: Any]] = []
     for c in service.characteristics ?? [] {
-        let characteristicProperty = _characteristicPropertiesEnum.firstIndex(of: c.properties)
         result.append([
-            "id": c.uuid.uuidString,
+            "uuid": c.uuid.uuidString,
             "isNotifying": c.isNotifying,
-            "property": characteristicProperty ?? -1,
             "value": c.value,
-            "serviceId": c.service.uuid.uuidString,
+            "serviceUUID": c.service.uuid.uuidString,
+            "deviceUUID": c.service.peripheral.identifier.uuidString,
+            "properties": dumpCharacteristicProperties(c),
         ])
     }
     return result
+}
+
+func dumpCharacteristicProperties(_ charactertistic: CBCharacteristic) -> [String: Bool] {
+    let properties = charactertistic.properties
+    return [
+        "isReadable": properties.contains(.read),
+        "isWritableWithoutResponse": properties.contains(.writeWithoutResponse),
+        "isWritable": properties.contains(.write),
+        "isNotifying": properties.contains(.notify),
+        "isIndicatable": properties.contains(.indicate),
+        "allowsSignedWrites": properties.contains(.authenticatedSignedWrites),
+        "hasExtendedProperties": properties.contains(.extendedProperties),
+        "notifyEncryptionRequired": properties.contains(.notifyEncryptionRequired),
+        "indicateEncryptionRequired": properties.contains(.indicateEncryptionRequired)
+    ]
 }
 
 //func dumpBlueoothDescriptor(_ descriptor: CBDescriptor) -> [[String: Any]] {
@@ -53,19 +68,6 @@ func dumpServiceCharacteristics(_ service: CBService) -> [[String: Any]] {
 //        "id": descriptor.value
 //    ]
 //}
-
-let _characteristicPropertiesEnum = [
-    CBCharacteristicProperties.broadcast,
-    CBCharacteristicProperties.read,
-    CBCharacteristicProperties.writeWithoutResponse,
-    CBCharacteristicProperties.write,
-    CBCharacteristicProperties.notify,
-    CBCharacteristicProperties.indicate,
-    CBCharacteristicProperties.authenticatedSignedWrites,
-    CBCharacteristicProperties.extendedProperties,
-    CBCharacteristicProperties.notifyEncryptionRequired,
-    CBCharacteristicProperties.indicateEncryptionRequired
-]
 
 let _deviceStateEnum = [
     CBPeripheralState.connected,
@@ -85,4 +87,8 @@ let _bluetoothStateEnum = [
 
 func dumpBluetoothState(_ state: CBManagerState) -> Int {
     return _bluetoothStateEnum.firstIndex(of: state)!
+}
+
+func dumpDeviceState(_ state: CBPeripheralState) -> Int {
+    return _deviceStateEnum.firstIndex(of: state)!
 }

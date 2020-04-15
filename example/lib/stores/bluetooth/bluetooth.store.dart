@@ -19,6 +19,9 @@ abstract class _BluetoothStore with Store {
     @observable
     List<FreeRTOSDevice> devicesNearby = [];
 
+    @observable
+    FreeRTOSDevice activeDevice;
+
     @action
     Future<void> initialize() async {
         try {
@@ -118,6 +121,21 @@ abstract class _BluetoothStore with Store {
             print(e);
         }
     }
+
+    Future<void> connectDevice(FreeRTOSDevice device) async {
+        try {
+            device.connect();
+            activeDevice = device;
+        } catch (e) {
+            print("Unable to connect to device");
+        }
+    }
+
+    // AmazonFreeRTOS GATT Server Demo
+    // https://docs.aws.amazon.com/freertos/latest/userguide/ble-demo.html#ble-demo-server
+    String get demoService => "c6f2d9e3-49e7-4125-9014-bfc6d669ff00";
+    String get demoRead => "c6f2d9e3-49e7-4125-9014-bfc6d669ff01";
+    String get demoWrite => "c6f2d9e3-49e7-4125-9014-bfc6d669ff02";
 
     @computed
     bool get isBluetoothSupportedAndOn => bluetoothState == BluetoothState.POWERED_ON;

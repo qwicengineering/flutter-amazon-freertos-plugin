@@ -19,12 +19,11 @@ public class SwiftFlutterAmazonFreeRTOSPlugin: NSObject, FlutterPlugin {
                 "rescanForDevices": plugin.rescanForDevices,
                 "connectToDeviceId": plugin.connectToDeviceId,
                 "disconnectFromDeviceId": plugin.disconnectFromDeviceId,
-                "discoverDevicesOnListen": plugin.discoverDevicesOnListen,
-                "discoverDevicesOnCancel": plugin.discoverDevicesOnCancel,
-                "listServicesForDeviceId": plugin.listServicesForDeviceId,
+                "deviceState": plugin.deviceState,
+                "deviceStateOnListen": plugin.deviceStateOnListen,
+                "deviceStateOnCancel": plugin.deviceStateOnCancel,
                 "listDiscoveredDevices": plugin.listDiscoveredDevices,
-                "readCharacteristic": plugin.readCharacteristic,
-                "readDescriptor": plugin.readDescriptor,
+                "listServicesForDeviceId": plugin.listServicesForDevice,
                 "writeDescriptor": plugin.writeDescriptor,
                 "writeCharacteristic": plugin.writeCharacteristic,
                 "setNotification": plugin.setNotification,
@@ -39,5 +38,12 @@ public class SwiftFlutterAmazonFreeRTOSPlugin: NSObject, FlutterPlugin {
             channel.invokeMethod("bluetoothStateChangeCallback", arguments: state)
         }
         
+        // FreeRTOS BLE Central Manager didConnectDevice
+        // Discover all custom services
+        NotificationCenter.default.addObserver(forName: .afrCentralManagerDidConnectDevice, object: nil, queue: nil) { notification in
+            let deviceUUID = notification.userInfo?["identifier"] as! UUID
+            guard let device = plugin.awsFreeRTOSManager.devices[deviceUUID] else { return }
+            device.peripheral.discoverServices([])
+        }
     }
 }

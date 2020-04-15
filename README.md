@@ -7,12 +7,15 @@ Flutter plugin wrapper for amazon freertos ios and android sdk
 This library is being actively developed by the QWIC team. It is meant for internal experimentation with amazon freertos devices
 
 ## Usuage
+
 ### Obtain an instance
+
 ```dart
 FlutterAmazonFreeRTOSPlugin amazonFreeRTOSPlugin = FlutterAmazonFreeRTOSPlugin.instance;
 ```
 
 ### Check for bluetooth state
+
 ```dart
 BluetoothState bluetoothState = await amazonFreeRTOSPlugin.bluetoothState;
 
@@ -26,14 +29,84 @@ amazonFreeRTOSPlugin.registerBluetoothStateChangeCallback((bluetoothState) {
 });
 ```
 
-### Get discovered devices
+### Scan for devices
+
 ```dart
-// Use Dart.Timer class to call this peridiocally to refresh the list
+amazonFreeRTOSPlugin.startScanForDevices()
+
+// Scan for devices
+amazonFreeRTOSPlugin.startScanForDevices()
+
+// Scan for devices with custom service UUIDs
+// args: List<string> serviceUUIDS
+amazonFreeRTOSPlugin.startScanForDevices(["c6f2d9e3-49e7-4125-9014-bfc6d669ff00"])
+```
+
+### Get discovered devices
+
+```dart
+// You can use Dart.Timer class to call this peridiocally to refresh the list
 List<FreeRTOSDevice> devices = await amazonFreeRTOSPlugin.discoveredDevices;
 ```
 
+### Stop / Rescan devices
+
+```dart
+// stop scan
+amazonFreeRTOSPlugin.stopScanForDevices();
+
+// rescan will clear the device list and start rescan of the devices
+amazonFreeRTOSPlugin.rescanForDevices();
+
+// rescan will clear the device list and start rescan of the devices with custom service UUIDS
+// args: List<string> serviceUUIDS
+amazonFreeRTOSPlugin.rescanForDevices(["c6f2d9e3-49e7-4125-9014-bfc6d669ff00"]);
+```
+
+### Connect / disconnect to device
+
+```dart
+List<FreeRTOSDevice> devices = await amazonFreeRTOSPlugin.discoveredDevices;
+
+FreeRTOSDevice device = devices[0];
+await device.connect();
+
+// observe device state
+final deviceStateListener = device.observeState().listen((state) {
+	if (state == FreeRTOSDeviceState.CONNECTED) {
+		// after connect logic
+	}
+})
+
+deviceStateListener.cancel();
+
+// Disconnect
+await device.disconnect();
+```
+
+### Get device services / characteristics
+
+```dart
+List<BluetoothService> services = await device.discoverServices();
+
+// This will retreive all services inluding FreeRTOS services such as DeviceInfo and MQTT Proxy
+// Filter the list to your custom service
+BlutoothService customService = services.filter(service == "c6f2d9e3-49e7-4125-9014-bfc6d669ff00");
+List<BluetoothCharacteristic> characteristics = customService.characteristics
+```
+
+### Write characteristics
+
+```dart
+
+// Write charactertistic value
+// args: Uint8List data
+```
+
 ### Example app
+
 Duplicate `example/android/app/src/main/res/raw/awscredentials_template.json` file, rename it into `example/android/app/src/main/res/raw/awscredentials.json` and fill in proper Cognito credentials:
+
 ```json
 {
 	"UserAgent": "MobileHub/1.0",
@@ -61,10 +134,13 @@ Duplicate `example/android/app/src/main/res/raw/awscredentials_template.json` fi
 ```
 
 ### Cognito
+
 Cognito initialization code is in `cognito.store.dart`
 
 ## Credits
+
 Heavily influenced by the following plugins.
+
 - [Flutter_blue](https://pub.dartlang.org/packages/flutter_blue)
 - [Flutter_cognito_plugin](https://pub.dev/packages/flutter_cognito_plugin)
 - [Plugin_scaffold](https://pub.dev/packages/plugin_scaffold)
