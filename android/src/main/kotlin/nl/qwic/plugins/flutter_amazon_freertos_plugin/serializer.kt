@@ -40,7 +40,7 @@ fun dumpBluetoothState(state: Int): Int {
 
 fun dumpFreeRTOSDeviceInfo(device: BluetoothDevice): Map<String, Any> {
     return mapOf(
-        "id" to device.address,
+        "uuid" to device.address,
         "name" to device.name,
         "state" to 2, // DISCONNECTED
         "reconnect" to false,
