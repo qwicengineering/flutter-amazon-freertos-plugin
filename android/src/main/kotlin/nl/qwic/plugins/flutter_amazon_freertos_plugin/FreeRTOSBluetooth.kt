@@ -34,7 +34,6 @@ import software.amazon.freertos.amazonfreertossdk.AmazonFreeRTOSConstants.BleCon
 * */
 
 class FreeRTOSBluetooth(context: Context) {
-    private val context = context;
     private val bluetoothManager = context.getSystemService(Context.BLUETOOTH_SERVICE) as BluetoothManager
     private val bluetoothAdapter = bluetoothManager.adapter
     private val awsFreeRTOSManager = AmazonFreeRTOSManager(context, bluetoothAdapter)!!
