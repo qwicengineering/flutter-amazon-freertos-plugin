@@ -10,7 +10,8 @@ import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
 import software.amazon.freertos.amazonfreertossdk.*
 import software.amazon.freertos.amazonfreertossdk.AmazonFreeRTOSConstants.BleConnectionState
-
+import android.bluetooth.BluetoothHealth
+import android.bluetooth.BluetoothProfile
 
 /*
     methodMap: [
@@ -39,8 +40,7 @@ class FreeRTOSBluetooth(context: Context) {
     private val awsFreeRTOSManager = AmazonFreeRTOSManager(context, bluetoothAdapter)!!
     private val bluetoothDevices: MutableMap<String, BluetoothDevice> = mutableMapOf()
     private val freeRTOSDevices: MutableMap<String, Map<String, Any>> = mutableMapOf()
-    var connectedDevice: AmazonFreeRTOSDevice? = null;
-    var connectedDeviceStatus: AmazonFreeRTOSConstants.BleConnectionState = AmazonFreeRTOSConstants.BleConnectionState.BLE_DISCONNECTED;
+    private val connectedDevices: MutableMap<String, AmazonFreeRTOSDevice> = mutableMapOf()
 
     private fun scanDevices() {
         awsFreeRTOSManager.startScanDevices(
@@ -89,7 +89,6 @@ class FreeRTOSBluetooth(context: Context) {
     private val connectionStatusCallback: BleConnectionStatusCallback = object : BleConnectionStatusCallback() {
         override fun onBleConnectionStatusChanged(connectionStatus: BleConnectionState) {
             print("BLE connection status changed to: $connectionStatus");
-            connectedDeviceStatus = connectionStatus;
         }
     }
 
@@ -102,24 +101,25 @@ class FreeRTOSBluetooth(context: Context) {
             return;
         }
         val credentialsProvider: AWSCredentialsProvider = AWSMobileClient.getInstance()
-        connectedDevice = awsFreeRTOSManager.connectToDevice(device, connectionStatusCallback, credentialsProvider, reconnect)
+        connectedDevices[device.address] = awsFreeRTOSManager.connectToDevice(device, connectionStatusCallback, credentialsProvider, reconnect)
         result.success(null);
     }
 
     fun deviceState(call: MethodCall, result: MethodChannel.Result) {
         val deviceUUID = call.argument<String>("deviceUUID");
-        if(connectedDevice != null && connectedDevice?.mBluetoothDevice?.address === deviceUUID) {
-            result.success(dumpBluetoothDeviceState(connectedDeviceStatus));
+        if(connectedDevices.isNotEmpty() && connectedDevices[deviceUUID] != null ) {
+            val state = bluetoothManager.getConnectionState(connectedDevices[deviceUUID]?.mBluetoothDevice, BluetoothProfile.GATT);
+            result.success(dumpBluetoothDeviceState(state));
             return;
         }
-        result.success(dumpBluetoothDeviceState(AmazonFreeRTOSConstants.BleConnectionState.BLE_DISCONNECTED));
+        result.success(dumpBluetoothDeviceState(BluetoothProfile.STATE_DISCONNECTED));
 
     }
 
     fun disconnectFromDeviceId(call: MethodCall, result: MethodChannel.Result) {
         val deviceUUID = call.argument<String>("deviceUUID");
-        if(connectedDevice != null) {
-            awsFreeRTOSManager.disconnectFromDevice(connectedDevice!!);
+        if(deviceUUID != null && connectedDevices.isNotEmpty() && connectedDevices[deviceUUID] != null) {
+            awsFreeRTOSManager.disconnectFromDevice(connectedDevices[deviceUUID]!!);
         }
         result.success(null);
     }

@@ -40,15 +40,15 @@ fun dumpBluetoothState(state: Int): Int {
 //    CBPeripheralState.disconnecting
 //]
 
-private val deviceStateEnum = arrayOf(
-    AmazonFreeRTOSConstants.BleConnectionState.BLE_CONNECTED,
-    AmazonFreeRTOSConstants.BleConnectionState.BLE_CONNECTING,
-    AmazonFreeRTOSConstants.BleConnectionState.BLE_DISCONNECTED,
-    AmazonFreeRTOSConstants.BleConnectionState.BLE_DISCONNECTING
-);
 
-fun dumpBluetoothDeviceState(state: AmazonFreeRTOSConstants.BleConnectionState): Int {
-    return deviceStateEnum.indexOf(state);
+fun dumpBluetoothDeviceState(state: Int): Int {
+    return when(state) {
+        2 -> 0 // BluetoothProfile.STATE_CONNECTED = 2 and has to match with 0
+        0 -> 2 // BluetoothProfile.STATE_DISCONNECTED = 0 and has to match with 2
+        else -> {
+            2
+        }
+    };
 }
 
 fun dumpBlueToothDeviceInfo(device: BluetoothDevice): Map<String, Any> {
