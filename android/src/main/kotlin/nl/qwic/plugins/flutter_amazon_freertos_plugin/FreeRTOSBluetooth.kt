@@ -12,6 +12,7 @@ import software.amazon.freertos.amazonfreertossdk.*
 import software.amazon.freertos.amazonfreertossdk.AmazonFreeRTOSConstants.BleConnectionState
 import android.bluetooth.BluetoothHealth
 import android.bluetooth.BluetoothProfile
+import java.lang.Exception
 
 /*
     methodMap: [
@@ -93,16 +94,21 @@ class FreeRTOSBluetooth(context: Context) {
     }
 
     fun connectToDeviceId(call: MethodCall, result: MethodChannel.Result) {
-        val deviceUUID = call.argument<String>("deviceUUID");
-        val reconnect = call.argument<Boolean>("reconnect") ?: true;
-        val device = bluetoothDevices[deviceUUID];
-        if(device == null) {
-            result.error("404", "No device found", null);
-            return;
+        try {
+            val deviceUUID = call.argument<String>("deviceUUID");
+            val reconnect = call.argument<Boolean>("reconnect") ?: true;
+            val device = bluetoothDevices[deviceUUID];
+            if(device == null) {
+                result.error("404", "No device found", null);
+                return;
+            }
+            val credentialsProvider: AWSCredentialsProvider = AWSMobileClient.getInstance()
+            connectedDevices[device.address] = awsFreeRTOSManager.connectToDevice(device, connectionStatusCallback, credentialsProvider, reconnect)
+            result.success(null);
+        } catch(error: Exception) {
+            result.error("500", error.message, error);
         }
-        val credentialsProvider: AWSCredentialsProvider = AWSMobileClient.getInstance()
-        connectedDevices[device.address] = awsFreeRTOSManager.connectToDevice(device, connectionStatusCallback, credentialsProvider, reconnect)
-        result.success(null);
+
     }
 
     fun deviceState(call: MethodCall, result: MethodChannel.Result) {
