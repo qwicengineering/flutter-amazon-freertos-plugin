@@ -2,6 +2,8 @@ package nl.qwic.plugins.flutter_amazon_freertos_plugin
 
 import android.bluetooth.BluetoothAdapter
 import android.bluetooth.BluetoothDevice
+import software.amazon.freertos.amazonfreertossdk.AmazonFreeRTOSConstants
+import software.amazon.freertos.amazonfreertossdk.AmazonFreeRTOSDevice
 
 /*
     iOS states:
@@ -38,9 +40,20 @@ fun dumpBluetoothState(state: Int): Int {
 //    CBPeripheralState.disconnecting
 //]
 
-fun dumpFreeRTOSDeviceInfo(device: BluetoothDevice): Map<String, Any> {
+
+fun dumpBluetoothDeviceState(state: Int): Int {
+    return when(state) {
+        2 -> 0 // BluetoothProfile.STATE_CONNECTED = 2 and has to match with 0
+        0 -> 2 // BluetoothProfile.STATE_DISCONNECTED = 0 and has to match with 2
+        else -> {
+            2
+        }
+    };
+}
+
+fun dumpBlueToothDeviceInfo(device: BluetoothDevice): Map<String, Any> {
     return mapOf(
-        "id" to device.address,
+        "uuid" to device.address,
         "name" to device.name,
         "state" to 2, // DISCONNECTED
         "reconnect" to false,

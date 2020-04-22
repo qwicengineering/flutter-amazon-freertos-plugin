@@ -75,10 +75,22 @@ class BluetoothDevicesScreen extends StatelessWidget {
                             Text("Bluetooth state: ${bluetoothStore.bluetoothState}\n"),
                             Row(
                                 children: <Widget>[
-                                    OutlineButton(child: Text("Start"), onPressed: bluetoothStore.startScanning),
-                                    OutlineButton(child: Text("Devices"), onPressed: bluetoothStore.getDevicesNearby),
-                                    OutlineButton(child: Text("Stop"), onPressed: _stopScanning),
-                                    OutlineButton(child: Text("Sign out"), onPressed: _onPressedSignOut),
+                                    Expanded(
+                                        flex: 1,
+                                        child: OutlineButton(child: Text("Start"), onPressed: bluetoothStore.startScanning),
+                                    ),
+                                    Expanded(
+                                        flex: 1,
+                                        child: OutlineButton(child: Text("Devices"), onPressed: bluetoothStore.getDevicesNearby),
+                                    ),
+                                    Expanded(
+                                        flex: 1,
+                                        child: OutlineButton(child: Text("Stop"), onPressed: _stopScanning),
+                                    ),
+                                    Expanded(
+                                        flex: 1,
+                                        child: OutlineButton(child: Text("Sign out"), onPressed: _onPressedSignOut),
+                                    ),
                                 ]
                             ),
                             Expanded(
