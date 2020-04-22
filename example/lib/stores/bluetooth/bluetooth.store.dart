@@ -127,7 +127,7 @@ abstract class _BluetoothStore with Store {
             device.connect();
             activeDevice = device;
         } catch (e) {
-            print("Unable to connect to device");
+            print("Unable to connect to device: $e");
         }
     }
 

@@ -1,7 +1,6 @@
 package nl.qwic.plugins.flutter_amazon_freertos_plugin
 
-import android.bluetooth.BluetoothDevice
-import android.bluetooth.BluetoothManager
+import android.bluetooth.*
 import android.bluetooth.le.ScanResult
 import android.content.Context
 import com.amazonaws.auth.AWSCredentialsProvider
@@ -10,8 +9,6 @@ import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
 import software.amazon.freertos.amazonfreertossdk.*
 import software.amazon.freertos.amazonfreertossdk.AmazonFreeRTOSConstants.BleConnectionState
-import android.bluetooth.BluetoothHealth
-import android.bluetooth.BluetoothProfile
 import java.lang.Exception
 
 /*
@@ -42,6 +39,7 @@ class FreeRTOSBluetooth(context: Context) {
     private val bluetoothDevices: MutableMap<String, BluetoothDevice> = mutableMapOf()
     private val freeRTOSDevices: MutableMap<String, Map<String, Any>> = mutableMapOf()
     private val connectedDevices: MutableMap<String, AmazonFreeRTOSDevice> = mutableMapOf()
+    private val context = context;
 
     private fun scanDevices() {
         awsFreeRTOSManager.startScanDevices(
@@ -129,4 +127,39 @@ class FreeRTOSBluetooth(context: Context) {
         }
         result.success(null);
     }
+
+    private val bluetoothGattCallback: BluetoothGattCallback = object : BluetoothGattCallback() {
+        override fun onServicesDiscovered(gatt: BluetoothGatt, status: Int) {
+            print("hey $gatt");
+            print("status: $status")
+        }
+    }
+
+    fun listServicesForDeviceId(call: MethodCall, result: MethodChannel.Result) {
+        val deviceUUID = call.argument<String>("deviceUUID");
+        if(deviceUUID == null) {
+            result.error("404", "deviceUUID param", "deviceUUID param should be sent")
+        }
+        val device = connectedDevices[deviceUUID];
+        val gattConnection = device?.mBluetoothDevice?.connectGatt(context, true, bluetoothGattCallback)
+
+        gattConnection?.services?.forEach {
+            dumpFreeRTOSDeviceServiceInfo(it);
+        }
+        result.success(gattConnection?.services)
+    }
+
+    /*
+    * func listServicesForDevice(call: FlutterMethodCall, result: @escaping FlutterResult) {
+        guard let args = call.arguments as? [String: Any?] else { return }
+
+        let deviceUUIDString = args["deviceUUID"] as! String
+        guard let device = getDevice(uuidString: deviceUUIDString) else { return }
+
+        var services: [Any] = []
+        for service in device.peripheral.services ?? [] {
+            services.append(dumpFreeRTOSDeviceServiceInfo(service))
+        }
+        result(services)
+    }*/
 }

@@ -2,6 +2,7 @@ package nl.qwic.plugins.flutter_amazon_freertos_plugin
 
 import android.bluetooth.BluetoothAdapter
 import android.bluetooth.BluetoothDevice
+import android.bluetooth.BluetoothGattService
 import software.amazon.freertos.amazonfreertossdk.AmazonFreeRTOSConstants
 import software.amazon.freertos.amazonfreertossdk.AmazonFreeRTOSDevice
 
@@ -63,3 +64,23 @@ fun dumpBlueToothDeviceInfo(device: BluetoothDevice): Map<String, Any> {
         "mtu" to 0
     )
 }
+
+fun dumpFreeRTOSDeviceServiceInfo(service: BluetoothGattService) {
+    print("service: $service");
+
+}
+/*func dumpFreeRTOSDeviceServiceInfo(_ service: CBService) -> [String: Any] {
+    var primaryServiceMap: [String: Any] = ["uuid": service.uuid.uuidString, "isPrimary": service.isPrimary, "deviceUUID": service.peripheral.identifier.uuidString]
+    primaryServiceMap["characteristics"] = dumpServiceCharacteristics(service)
+    primaryServiceMap["includedServices"] = []
+
+    // Loop through included services if exists
+    var includedServiceList: [Any] = []
+    guard let includedServices = service.includedServices else { return primaryServiceMap }
+    for s in includedServices {
+        includedServiceList.append([s.uuid.uuidString, s.isPrimary, dumpServiceCharacteristics(s)])
+    }
+    primaryServiceMap["includedServices"] = includedServiceList
+
+    return primaryServiceMap
+}*/
