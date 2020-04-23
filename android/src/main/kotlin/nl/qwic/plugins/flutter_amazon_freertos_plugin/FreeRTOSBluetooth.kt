@@ -11,6 +11,8 @@ import io.flutter.plugin.common.MethodChannel
 import software.amazon.freertos.amazonfreertossdk.*
 import software.amazon.freertos.amazonfreertossdk.AmazonFreeRTOSConstants.BleConnectionState
 import java.lang.Exception
+import java.util.*
+import kotlin.collections.ArrayList
 
 /*
     methodMap: [
@@ -138,7 +140,6 @@ class FreeRTOSBluetooth(context: Context) {
                 // Attempts to discover services after successful connection.
                 val servicesDiscovered = mBluetoothGatt!!.discoverServices();
                 Log.i(TAG, "Attempting to start service discovery: $servicesDiscovered")
-                print("HEEEEEEEYDFSJLKSJFDSLFJDSLIHJFDSLIFHDSIFHIHWIHJQ0-I-IR0-9I0-8QW0-80-F8S0-AIF0SA")
             } else if (newState == BluetoothProfile.STATE_DISCONNECTED) {
                 Log.i(TAG, "Disconnected from GATT server.")
             }
@@ -146,9 +147,9 @@ class FreeRTOSBluetooth(context: Context) {
 
         override fun onServicesDiscovered(gatt: BluetoothGatt, status: Int) {
             if (status == BluetoothGatt.GATT_SUCCESS) {
-
+                Log.w(TAG, "onServicesDiscovered received: $status")
             } else {
-                Log.w(TAG, "onServicesDiscovered received: " + status)
+                Log.w(TAG, "onServicesDiscovered received: $status")
             }
         }
 
@@ -168,8 +169,11 @@ class FreeRTOSBluetooth(context: Context) {
             result.error("404", "deviceUUID param", "deviceUUID param should be sent")
         }
         val device = connectedDevices[deviceUUID];
+        // need to do this async
         mBluetoothGatt = device!!.mBluetoothDevice.connectGatt(context, false, bluetoothGattCallback)
         val services: MutableList<Any> = mutableListOf();
+        // This only will have discovered services when mBluetoothGatt!!.discoverServices() completes successfully
+        // Check inside bluetoothGattCallback
         mBluetoothGatt!!.services.forEach {
             services.add(dumpFreeRTOSDeviceServiceInfo(it!!, deviceUUID!!));
         }
