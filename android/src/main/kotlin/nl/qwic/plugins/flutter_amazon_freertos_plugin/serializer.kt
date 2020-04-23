@@ -102,10 +102,10 @@ fun dumpServiceCharacteristics(service: BluetoothGattService, deviceUUID: String
     service.characteristics.forEach() {
        result.add(
            mutableMapOf(
-               "uuid" to it.uuid,
+               "uuid" to it.uuid.toString(),
                "isNotifying" to (it.properties and BluetoothGattCharacteristic.PROPERTY_NOTIFY != 0),
                "value" to it.value,
-               "serviceUUID" to it.service.uuid,
+               "serviceUUID" to it.service.uuid.toString(),
                "deviceUUID" to deviceUUID,
                "properties" to dumpCharacteristicProperties(it)
            )
@@ -137,7 +137,7 @@ inline fun <reified T> Any?.tryCast(block: T.() -> Unit) {
 
 fun dumpFreeRTOSDeviceServiceInfo(service: BluetoothGattService, deviceUUID: String): Map<String, Any> {
     val primaryServiceMap: MutableMap<String, Any> = mutableMapOf(
-            "uuid" to service.uuid,
+            "uuid" to service.uuid.toString(),
             "isPrimary" to (service.type == BluetoothGattService.SERVICE_TYPE_PRIMARY),
             "deviceUUID" to deviceUUID,
             "characteristics" to dumpServiceCharacteristics(service, deviceUUID),
@@ -158,7 +158,7 @@ fun dumpFreeRTOSDeviceServiceInfo(service: BluetoothGattService, deviceUUID: Str
         includedServices.tryCast<List<BluetoothGattService>> {
             this.forEach() {
                 includedServiceList.add(mutableListOf(
-                        it.uuid,
+                        it.uuid.toString(),
                         (service.type == BluetoothGattService.SERVICE_TYPE_PRIMARY),
                         dumpServiceCharacteristics(it, deviceUUID)
                 ))

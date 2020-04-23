@@ -136,8 +136,9 @@ class FreeRTOSBluetooth(context: Context) {
             if (newState == BluetoothProfile.STATE_CONNECTED) {
                 Log.i(TAG, "Connected to GATT server.")
                 // Attempts to discover services after successful connection.
-                Log.i(TAG, "Attempting to start service discovery:" + mBluetoothGatt!!.discoverServices())
-
+                val servicesDiscovered = mBluetoothGatt!!.discoverServices();
+                Log.i(TAG, "Attempting to start service discovery: $servicesDiscovered")
+                print("HEEEEEEEYDFSJLKSJFDSLFJDSLIHJFDSLIFHDSIFHIHWIHJQ0-I-IR0-9I0-8QW0-80-F8S0-AIF0SA")
             } else if (newState == BluetoothProfile.STATE_DISCONNECTED) {
                 Log.i(TAG, "Disconnected from GATT server.")
             }
@@ -170,7 +171,7 @@ class FreeRTOSBluetooth(context: Context) {
         mBluetoothGatt = device!!.mBluetoothDevice.connectGatt(context, false, bluetoothGattCallback)
         val services: MutableList<Any> = mutableListOf();
         mBluetoothGatt!!.services.forEach {
-            services.add(dumpFreeRTOSDeviceServiceInfo(it, deviceUUID!!));
+            services.add(dumpFreeRTOSDeviceServiceInfo(it!!, deviceUUID!!));
         }
         result.success(services);
     }
