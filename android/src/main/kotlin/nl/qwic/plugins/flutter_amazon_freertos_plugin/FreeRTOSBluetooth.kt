@@ -145,7 +145,7 @@ class FreeRTOSBluetooth(context: Context) {
 
         override fun onServicesDiscovered(gatt: BluetoothGatt, status: Int) {
             if (status == BluetoothGatt.GATT_SUCCESS) {
-//                broadcastUpdate(ACTION_GATT_SERVICES_DISCOVERED)
+
             } else {
                 Log.w(TAG, "onServicesDiscovered received: " + status)
             }
