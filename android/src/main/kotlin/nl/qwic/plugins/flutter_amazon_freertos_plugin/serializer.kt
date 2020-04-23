@@ -4,12 +4,15 @@ import android.bluetooth.BluetoothAdapter
 import android.bluetooth.BluetoothDevice
 import android.bluetooth.BluetoothGattCharacteristic
 import android.bluetooth.BluetoothGattService
-import software.amazon.freertos.amazonfreertossdk.AmazonFreeRTOSConstants
-import software.amazon.freertos.amazonfreertossdk.AmazonFreeRTOSDevice
+
+inline fun <reified T> Any?.tryCast(block: T.() -> Unit) {
+    if (this is T) {
+        block()
+    }
+}
 
 /*
     iOS states:
-
     CBManagerState.poweredOff,
     CBManagerState.poweredOn,
     CBManagerState.resetting,
@@ -17,12 +20,6 @@ import software.amazon.freertos.amazonfreertossdk.AmazonFreeRTOSDevice
     CBManagerState.unsupported,
     CBManagerState.unknown
 */
-
-// TODO: Since the BLE state in Android is not the same as it is on iOS,
-//  we need to find a better way to match these values:
-//  BluetoothAdapter.STATE_OFF = 10
-//  BluetoothAdapter.STATE_ON = 12
-//  And we don't have an unknown state on Android
 
 fun dumpBluetoothState(state: Int): Int {
     return when(state) {
@@ -34,14 +31,13 @@ fun dumpBluetoothState(state: Int): Int {
     }
 }
 
-// Device states in iOS
-//val _deviceStateEnum = [
-//    CBPeripheralState.connected,
-//    CBPeripheralState.connecting,
-//    CBPeripheralState.disconnected,
-//    CBPeripheralState.disconnecting
-//]
-
+/*
+    iOS device states:
+    CBPeripheralState.connected,
+    CBPeripheralState.connecting,
+    CBPeripheralState.disconnected,
+    CBPeripheralState.disconnecting
+*/
 
 fun dumpBluetoothDeviceState(state: Int): Int {
     return when(state) {
@@ -82,21 +78,6 @@ fun dumpCharacteristicProperties(characteristic: BluetoothGattCharacteristic): M
     )
 }
 
-/*func dumpCharacteristicProperties(_ charactertistic: CBCharacteristic) -> [String: Bool] {
-    let properties = charactertistic.properties
-    return [
-        "isReadable": properties.contains(.read),
-        "isWritableWithoutResponse": properties.contains(.writeWithoutResponse),
-        "isWritable": properties.contains(.write),
-        "isNotifying": properties.contains(.notify),
-        "isIndicatable": properties.contains(.indicate),
-        "allowsSignedWrites": properties.contains(.authenticatedSignedWrites),
-        "hasExtendedProperties": properties.contains(.extendedProperties),
-        "notifyEncryptionRequired": properties.contains(.notifyEncryptionRequired),
-        "indicateEncryptionRequired": properties.contains(.indicateEncryptionRequired)
-    ]
-}*/
-
 fun dumpServiceCharacteristics(service: BluetoothGattService, deviceUUID: String): List<Map<String, Any>> {
     val result = mutableListOf<MutableMap<String, Any>>();
     service.characteristics.forEach() {
@@ -112,27 +93,6 @@ fun dumpServiceCharacteristics(service: BluetoothGattService, deviceUUID: String
        )
     }
     return result;
-}
-
-/*func dumpServiceCharacteristics(_ service: CBService) -> [[String: Any]] {
-    var result: [[String: Any]] = []
-    for c in service.characteristics ?? [] {
-        result.append([
-            "uuid": c.uuid.uuidString,
-            "isNotifying": c.isNotifying,
-            "value": c.value,
-            "serviceUUID": c.service.uuid.uuidString,
-            "deviceUUID": c.service.peripheral.identifier.uuidString,
-            "properties": dumpCharacteristicProperties(c),
-        ])
-    }
-    return result
-}*/
-
-inline fun <reified T> Any?.tryCast(block: T.() -> Unit) {
-    if (this is T) {
-        block()
-    }
 }
 
 fun dumpFreeRTOSDeviceServiceInfo(service: BluetoothGattService, deviceUUID: String): Map<String, Any> {
@@ -168,18 +128,3 @@ fun dumpFreeRTOSDeviceServiceInfo(service: BluetoothGattService, deviceUUID: Str
     primaryServiceMap["includedServices"] = includedServiceList
     return primaryServiceMap
 }
-/*func dumpFreeRTOSDeviceServiceInfo(_ service: CBService) -> [String: Any] {
-    var primaryServiceMap: [String: Any] = ["uuid": service.uuid.uuidString, "isPrimary": service.isPrimary, "deviceUUID": service.peripheral.identifier.uuidString]
-    primaryServiceMap["characteristics"] = dumpServiceCharacteristics(service)
-    primaryServiceMap["includedServices"] = []
-
-    // Loop through included services if exists
-    var includedServiceList: [Any] = []
-    guard let includedServices = service.includedServices else { return primaryServiceMap }
-    for s in includedServices {
-        includedServiceList.append([s.uuid.uuidString, s.isPrimary, dumpServiceCharacteristics(s)])
-    }
-    primaryServiceMap["includedServices"] = includedServiceList
-
-    return primaryServiceMap
-}*/

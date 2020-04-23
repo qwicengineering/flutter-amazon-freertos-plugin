@@ -39,6 +39,7 @@ import kotlin.collections.ArrayList
 * */
 
 class FreeRTOSBluetooth(context: Context) {
+    private val context = context;
     private val TAG = "FreeRTOSBluetooth"
     private val bluetoothManager = context.getSystemService(Context.BLUETOOTH_SERVICE) as BluetoothManager
     private val bluetoothAdapter = bluetoothManager.adapter
@@ -46,7 +47,6 @@ class FreeRTOSBluetooth(context: Context) {
     private val bluetoothDevices: MutableMap<String, BluetoothDevice> = mutableMapOf()
     private val freeRTOSDevices: MutableMap<String, Map<String, Any>> = mutableMapOf()
     private val connectedDevices: MutableMap<String, AmazonFreeRTOSDevice> = mutableMapOf()
-    private val context = context;
     private val bluetoothGattConnections: MutableMap<String, BluetoothGatt> = mutableMapOf();
 
     private fun scanDevices() {
