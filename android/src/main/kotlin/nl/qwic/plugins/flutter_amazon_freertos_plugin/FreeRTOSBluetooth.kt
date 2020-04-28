@@ -42,13 +42,13 @@ import software.amazon.freertos.amazonfreertossdk.BleScanResultCallback
 
 class FreeRTOSBluetooth(context: Context) {
     private val context = context;
-    private val TAG = "FreeRTOSBluetooth"
-    private val bluetoothManager = context.getSystemService(Context.BLUETOOTH_SERVICE) as BluetoothManager
-    private val bluetoothAdapter = bluetoothManager.adapter
-    private val awsFreeRTOSManager = AmazonFreeRTOSManager(context, bluetoothAdapter)!!
-    private val bluetoothDevices: MutableMap<String, BluetoothDevice> = mutableMapOf()
-    private val freeRTOSDevices: MutableMap<String, Map<String, Any>> = mutableMapOf()
-    private val connectedDevices: MutableMap<String, AmazonFreeRTOSDevice> = mutableMapOf()
+    private val TAG = "FreeRTOSBluetooth";
+    private val bluetoothManager = context.getSystemService(Context.BLUETOOTH_SERVICE) as BluetoothManager;
+    private val bluetoothAdapter = bluetoothManager.adapter;
+    private val awsFreeRTOSManager = AmazonFreeRTOSManager(context, bluetoothAdapter);
+    private val bluetoothDevices: MutableMap<String, BluetoothDevice> = mutableMapOf();
+    private val freeRTOSDevices: MutableMap<String, Map<String, Any>> = mutableMapOf();
+    private val connectedDevices: MutableMap<String, AmazonFreeRTOSDevice> = mutableMapOf();
     private val bluetoothGattConnections: MutableMap<String, BluetoothGatt> = mutableMapOf();
     private var deviceStateReceiver: BroadcastReceiver? = null;
 
@@ -98,7 +98,7 @@ class FreeRTOSBluetooth(context: Context) {
             bluetoothDevices.clear();
             freeRTOSDevices.clear();
             scanDevices();
-            result.success(null)
+            result.success(null);
         } catch(error: Exception) {
             result.error("500", error.message, error);
         }
@@ -117,33 +117,34 @@ class FreeRTOSBluetooth(context: Context) {
     private val bluetoothGattCallback = object : BluetoothGattCallback() {
         override fun onConnectionStateChange(gatt: BluetoothGatt, status: Int, newState: Int) {
             if (newState == BluetoothProfile.STATE_CONNECTED) {
-                Log.i(TAG, "Connected to GATT server.")
+                Log.i(TAG, "Connected to GATT server.");
                 // Attempts to discover services after successful connection.
                 val servicesDiscovered = gatt.discoverServices();
-                Log.i(TAG, "Attempting to start service discovery: $servicesDiscovered")
+                Log.i(TAG, "Attempting to start service discovery: $servicesDiscovered");
             } else if (newState == BluetoothProfile.STATE_DISCONNECTED) {
-                Log.i(TAG, "Disconnected from GATT server.")
+                gatt.disconnect();
+                Log.i(TAG, "Disconnected from GATT server.");
             }
         }
 
         override fun onServicesDiscovered(gatt: BluetoothGatt, status: Int) {
             if (status == BluetoothGatt.GATT_SUCCESS) {
-                Log.w(TAG, "onServicesDiscovered received: $status")
+                Log.w(TAG, "onServicesDiscovered received: $status");
             } else {
-                Log.w(TAG, "onServicesDiscovered received: $status")
+                Log.w(TAG, "onServicesDiscovered received: $status");
             }
         }
 
         override fun onCharacteristicRead(gatt: BluetoothGatt,
                                           characteristic: BluetoothGattCharacteristic,
                                           status: Int) {
-            Log.w(TAG, "onCharacteristicRead status: $status")
-            Log.w(TAG, "onCharacteristicRead read: $characteristic")
+            Log.w(TAG, "onCharacteristicRead status: $status");
+            Log.w(TAG, "onCharacteristicRead read: $characteristic");
         }
 
         override fun onCharacteristicChanged(gatt: BluetoothGatt,
                                              characteristic: BluetoothGattCharacteristic) {
-            Log.w(TAG, "onCharacteristicChanged read: $characteristic")
+            Log.w(TAG, "onCharacteristicChanged read: $characteristic");
         }
     }
 
@@ -153,16 +154,16 @@ class FreeRTOSBluetooth(context: Context) {
             val reconnect = call.argument<Boolean>("reconnect") ?: true;
             val device = bluetoothDevices[deviceUUID];
             if(deviceUUID == null) {
-                result.error("404", "deviceUUID param", "deviceUUID param should be sent")
-                return
+                result.error("404", "deviceUUID param", "deviceUUID param should be sent");
+                return;
             }
             if(device == null) {
                 result.error("404", "Device not found", null);
                 return;
             }
-            val credentialsProvider: AWSCredentialsProvider = AWSMobileClient.getInstance()
-            connectedDevices[device.address] = awsFreeRTOSManager.connectToDevice(device, connectionStatusCallback, credentialsProvider, reconnect)
-            bluetoothGattConnections[device.address] = device.connectGatt(context, false, bluetoothGattCallback)
+            val credentialsProvider: AWSCredentialsProvider = AWSMobileClient.getInstance();
+            connectedDevices[device.address] = awsFreeRTOSManager.connectToDevice(device, connectionStatusCallback, credentialsProvider, reconnect);
+            bluetoothGattConnections[device.address] = device.connectGatt(context, false, bluetoothGattCallback);
             result.success(null);
         } catch(error: Exception) {
             result.error("500", error.message, error);
@@ -174,12 +175,12 @@ class FreeRTOSBluetooth(context: Context) {
             val deviceUUID = call.argument<String>("deviceUUID");
             val connectedDevice = connectedDevices[deviceUUID];
             if(deviceUUID == null) {
-                result.error("404", "deviceUUID param", "deviceUUID param should be sent")
-                return
+                result.error("404", "deviceUUID param", "deviceUUID param should be sent");
+                return;
             }
             if(connectedDevice == null) {
                 result.success(dumpBluetoothDeviceState(BluetoothProfile.STATE_DISCONNECTED));
-                return
+                return;
             }
             val state = bluetoothManager.getConnectionState(connectedDevice.mBluetoothDevice, BluetoothProfile.GATT);
             result.success(dumpBluetoothDeviceState(state));
@@ -193,12 +194,12 @@ class FreeRTOSBluetooth(context: Context) {
         val deviceUUID = args  as String;
             val device = bluetoothDevices[deviceUUID];
             if(deviceUUID == null) {
-                sink.error("404", "deviceUUID param", "deviceUUID param should be sent")
-                return
+                sink.error("404", "deviceUUID param", "deviceUUID param should be sent");
+                return;
             }
             if(device == null) {
-                sink.error("500", "device not found", "There's no device with the given deviceUUID param")
-                return
+                sink.error("500", "device not found", "There's no device with the given deviceUUID param");
+                return;
             }
             deviceStateReceiver = object : BroadcastReceiver() {
                 override fun onReceive(context: Context, intent: Intent) {
@@ -224,16 +225,19 @@ class FreeRTOSBluetooth(context: Context) {
         try {
             val deviceUUID = call.argument<String>("deviceUUID");
             val connectedDevice = connectedDevices[deviceUUID];
+            val gattConnection = bluetoothGattConnections[deviceUUID];
             if(deviceUUID == null) {
-                result.error("404", "deviceUUID param", "deviceUUID param should be sent")
-                return
+                result.error("404", "deviceUUID param", "deviceUUID param should be sent");
+                return;
             }
-            if(connectedDevice == null) {
-                result.error("500", "device not found", "There's no connected device with the given deviceUUID param")
-                return
+            if(connectedDevice == null || gattConnection == null) {
+                result.error("500", "device not found", "There's no connected device with the given deviceUUID param");
+                return;
             }
             awsFreeRTOSManager.disconnectFromDevice(connectedDevice);
-            bluetoothGattConnections[deviceUUID]!!.disconnect();
+            gattConnection.disconnect();
+            connectedDevices.remove(deviceUUID);
+            bluetoothGattConnections.remove(deviceUUID);
             result.success(null);
         } catch(error: Exception) {
             result.error("500", error.message, error);
@@ -246,19 +250,19 @@ class FreeRTOSBluetooth(context: Context) {
             val gattConnection = bluetoothGattConnections[deviceUUID];
             val services: MutableList<Any> = mutableListOf();
             if(deviceUUID == null) {
-                result.error("404", "deviceUUID param", "deviceUUID param should be sent")
-                return
+                result.error("404", "deviceUUID param", "deviceUUID param should be sent");
+                return;
             }
             if(gattConnection == null) {
-                result.error("500", "GATT Connection not found", "There's no GATT connection with the given deviceUUID param")
-                return
+                result.error("500", "GATT Connection not found", "There's no GATT connection with the given deviceUUID param");
+                return;
             }
             /*
                 This only will have discovered services when gatt.discoverServices() completes successfully
                 Check inside bluetoothGattCallback
             */
-            gattConnection!!.services.forEach {
-                services.add(dumpFreeRTOSDeviceServiceInfo(it!!, deviceUUID!!));
+            gattConnection.services.forEach {
+                services.add(dumpFreeRTOSDeviceServiceInfo(it, deviceUUID));
             }
             result.success(services);
         } catch(error: Exception) {
