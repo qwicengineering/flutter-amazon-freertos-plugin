@@ -119,34 +119,39 @@ class FreeRTOSBluetooth(context: Context) {
     private val bluetoothGattCallback = object : BluetoothGattCallback() {
         override fun onConnectionStateChange(gatt: BluetoothGatt, status: Int, newState: Int) {
             if (newState == BluetoothProfile.STATE_CONNECTED) {
-                Log.i(TAG, "Connected to GATT server.")
+                Log.i(TAG, "Connected to GATT server.");
                 // Attempts to discover services after successful connection.
-                val servicesDiscovered = gatt.discoverServices()
+                val servicesDiscovered = gatt.discoverServices();
                 Log.i(TAG, "Attempting to start service discovery: $servicesDiscovered")
             } else if (newState == BluetoothProfile.STATE_DISCONNECTED) {
-                gatt.disconnect()
-                Log.i(TAG, "Disconnected from GATT server.")
+                gatt.disconnect();
+                Log.i(TAG, "Disconnected from GATT server.");
             }
         }
 
         override fun onServicesDiscovered(gatt: BluetoothGatt, status: Int) {
             if (status == BluetoothGatt.GATT_SUCCESS) {
-                Log.w(TAG, "onServicesDiscovered received: $status")
+                Log.w(TAG, "onServicesDiscovered received: $status");
             } else {
-                Log.w(TAG, "onServicesDiscovered received: $status")
+                Log.w(TAG, "onServicesDiscovered received: $status");
             }
         }
 
         override fun onCharacteristicRead(gatt: BluetoothGatt,
                                           characteristic: BluetoothGattCharacteristic,
                                           status: Int) {
-            Log.w(TAG, "onCharacteristicRead status: $status")
-            Log.w(TAG, "onCharacteristicRead read: $characteristic")
+            Log.w(TAG, "onCharacteristicRead status: $status");
+            Log.w(TAG, "onCharacteristicRead read: $characteristic");
         }
 
         override fun onCharacteristicChanged(gatt: BluetoothGatt,
                                              characteristic: BluetoothGattCharacteristic) {
-            Log.w(TAG, "onCharacteristicChanged read: $characteristic")
+            Log.w(TAG, "onCharacteristicChanged read: ${characteristic.value}");
+        }
+
+        override fun onCharacteristicWrite(gatt: BluetoothGatt?, characteristic: BluetoothGattCharacteristic?, status: Int) {
+            super.onCharacteristicWrite(gatt, characteristic, status)
+            Log.w(TAG, "onCharacteristicWrite write: $characteristic");
         }
     }
 
@@ -298,7 +303,14 @@ class FreeRTOSBluetooth(context: Context) {
             return
         }
 
-        val service = bluetoothGattConnections[deviceUUID]?.getService(UUID.fromString(serviceUUID))
+        val gattConnection = bluetoothGattConnections[deviceUUID];
+
+        if (gattConnection === null) {
+            result.error("404", "gattConnection", "gattConnection not found")
+            return
+        }
+
+        val service = gattConnection.getService(UUID.fromString(serviceUUID))
 
         if (service === null) {
             result.error("404", "service: $serviceUUID", "service not found")
@@ -311,8 +323,9 @@ class FreeRTOSBluetooth(context: Context) {
             result.error("404", "characteristic: $characteristicUUID", "characteristic not found")
             return
         }
+        val wt = characteristic.writeType;
 
         characteristic.setValue(value);
-        result.success(null);
+        gattConnection.writeCharacteristic(characteristic);
     }
 }
