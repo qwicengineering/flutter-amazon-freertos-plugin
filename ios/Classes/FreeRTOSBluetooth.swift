@@ -144,25 +144,25 @@ class FreeRTOSBluetooth {
         result (FlutterMethodNotImplemented)
     }
     
-    func writeCharacteristic(call: FlutterMethodCall, result: @escaping FlutterResult) {
-        guard let args = call.arguments as? [String: Any?] else { return }
-        let value = args["value"] as! FlutterStandardTypedData
-        
-        let deviceUUIDString = args["deviceUUID"] as! String
-        guard let device = getDevice(uuidString: deviceUUIDString) else { return }
-        
-        let serviceUUIDString = args["serviceUUID"] as! String
-        let serviceUUID = CBUUID(string: serviceUUIDString)
-        guard let service = device.peripheral.serviceOf(uuid: serviceUUID) else { return }
-        
-        let characteristicUUIDString = args["characteristicUUID"] as! String
-        let characteristicUUID = CBUUID(string: characteristicUUIDString)
-        guard let characteristic = service.characteristicOf(uuid: characteristicUUID) else { return }
-        
-        // Harcoding .withResponse for now.
-        // TODO: Retreive .withResponse as from call.arguments
-        device.peripheral.writeValue(value.data, for: characteristic, type: .withResponse)
-    }
+        func writeCharacteristic(call: FlutterMethodCall, result: @escaping FlutterResult) {
+            guard let args = call.arguments as? [String: Any?] else { return }
+            let value = args["value"] as! FlutterStandardTypedData
+            
+            let deviceUUIDString = args["deviceUUID"] as! String
+            guard let device = getDevice(uuidString: deviceUUIDString) else { return }
+            
+            let serviceUUIDString = args["serviceUUID"] as! String
+            let serviceUUID = CBUUID(string: serviceUUIDString)
+            guard let service = device.peripheral.serviceOf(uuid: serviceUUID) else { return }
+            
+            let characteristicUUIDString = args["characteristicUUID"] as! String
+            let characteristicUUID = CBUUID(string: characteristicUUIDString)
+            guard let characteristic = service.characteristicOf(uuid: characteristicUUID) else { return }
+            
+            // Harcoding .withResponse for now.
+            // TODO: Retreive .withResponse as from call.arguments
+            device.peripheral.writeValue(value.data, for: characteristic, type: .withResponse)
+        }
     
     func setNotification(call: FlutterMethodCall, result: @escaping FlutterResult) {
         result(FlutterMethodNotImplemented)

@@ -1,7 +1,7 @@
 part of flutter_amazon_freertos_plugin;
 
 int decodeToInt(List data, {int bytes = 1}) {
-    if (data.isEmpty) { return 0; }
+    if (data == null || data.isEmpty) { return 0; }
     Int8List input = Int8List.fromList(data);
     ByteData bd = input.buffer.asByteData();
     switch(bytes) {
