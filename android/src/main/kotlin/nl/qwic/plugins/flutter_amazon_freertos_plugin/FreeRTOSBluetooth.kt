@@ -241,11 +241,10 @@ class FreeRTOSBluetooth(context: Context) {
                 result.error("500", "device not found", "There's no connected device with the given deviceUUID param")
                 return
             }
-            awsFreeRTOSManager.disconnectFromDevice(connectedDevice)
-            gattConnection.disconnect()
-            connectedDevices.remove(deviceUUID)
-            bluetoothGattConnections.remove(deviceUUID)
-            result.success(null)
+            awsFreeRTOSManager.disconnectFromDevice(connectedDevice);
+            connectedDevices.remove(deviceUUID);
+            bluetoothGattConnections.remove(deviceUUID);
+            result.success(null);
         } catch(error: Exception) {
             result.error("500", error.message, error)
         }
