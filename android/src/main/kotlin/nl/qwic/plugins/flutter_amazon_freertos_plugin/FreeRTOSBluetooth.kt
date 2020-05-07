@@ -1,6 +1,7 @@
 package nl.qwic.plugins.flutter_amazon_freertos_plugin
 
 import android.bluetooth.*
+import android.bluetooth.BluetoothGattCharacteristic.PROPERTY_READ
 import android.bluetooth.le.ScanResult
 import android.content.BroadcastReceiver
 import android.content.Context
@@ -118,15 +119,37 @@ class FreeRTOSBluetooth(context: Context) {
 
     private val bluetoothGattCallback = object : BluetoothGattCallback() {
         override fun onConnectionStateChange(gatt: BluetoothGatt, status: Int, newState: Int) {
-            if (newState == BluetoothProfile.STATE_CONNECTED) {
-                Log.i(TAG, "Connected to GATT server.");
-                // Attempts to discover services after successful connection.
-                val servicesDiscovered = gatt.discoverServices();
-                Log.i(TAG, "Attempting to start service discovery: $servicesDiscovered")
-            } else if (newState == BluetoothProfile.STATE_DISCONNECTED) {
-                gatt.disconnect();
-                Log.i(TAG, "Disconnected from GATT server.");
+            if (status == BluetoothGatt.GATT_SUCCESS) {
+                if (newState == BluetoothProfile.STATE_CONNECTED) {
+                    val bondState = gatt.device.bondState;
+
+                    // Take action depending on the bond state
+                    if(bondState == BluetoothDevice.BOND_NONE || bondState == BluetoothDevice.BOND_BONDED) {
+                        Log.i(TAG, "Connected to GATT server.");
+                        // Needs to requests the needed MTU size, otherwise an
+                        // "BT GATT: attribute value too long, to be truncated to 22" error is displayed
+                        // (https://github.com/aws/amazon-freertos-ble-android-sdk/issues/2#issuecomment-486449667)
+                        // TODO: check what is the best value to send here
+                        gatt.requestMtu(510);
+                        // Attempts to discover services after successful connection.
+                        val servicesDiscovered = gatt.discoverServices();
+                        Log.i(TAG, "Attempting to start service discovery: $servicesDiscovered")
+                    }else if (bondState == BluetoothDevice.BOND_BONDING) {
+                        // Bonding process in progress, let it complete
+                        Log.i(TAG, "waiting for bonding to complete");
+                    }
+
+                } else if (newState == BluetoothProfile.STATE_DISCONNECTED) {
+                    gatt.close();
+                    Log.i(TAG, "Disconnected from GATT server.");
+                } else {
+                    // We're CONNECTING or DISCONNECTING, ignore for now
+                }
+            } else {
+                // An error happened...figure out what happened!
+                gatt.close();
             }
+
         }
 
         override fun onServicesDiscovered(gatt: BluetoothGatt, status: Int) {
@@ -140,7 +163,7 @@ class FreeRTOSBluetooth(context: Context) {
         override fun onCharacteristicRead(gatt: BluetoothGatt,
                                           characteristic: BluetoothGattCharacteristic,
                                           status: Int) {
-            Log.w(TAG, "onCharacteristicRead status: $status");
+            Log.w(TAG, "onCharacteristicRead value: ${characteristic.value}");
             Log.w(TAG, "onCharacteristicRead read: $characteristic");
         }
 
@@ -152,6 +175,13 @@ class FreeRTOSBluetooth(context: Context) {
         override fun onCharacteristicWrite(gatt: BluetoothGatt?, characteristic: BluetoothGattCharacteristic?, status: Int) {
             super.onCharacteristicWrite(gatt, characteristic, status)
             Log.w(TAG, "onCharacteristicWrite write: $characteristic");
+        }
+
+        override fun onMtuChanged(gatt: BluetoothGatt?, mtu: Int, status: Int) {
+            super.onMtuChanged(gatt, mtu, status)
+            Log.w(TAG, "onMtuChanged status: $status");
+            Log.w(TAG, "onMtuChanged gatt: $gatt");
+            Log.w(TAG, "onMtuChanged mtu: $mtu");
         }
     }
 
@@ -242,6 +272,8 @@ class FreeRTOSBluetooth(context: Context) {
                 return
             }
             awsFreeRTOSManager.disconnectFromDevice(connectedDevice);
+//            gattConnection.disconnect();
+//            bluetoothDevices.remove(deviceUUID);
             connectedDevices.remove(deviceUUID);
             bluetoothGattConnections.remove(deviceUUID);
             result.success(null);
@@ -326,5 +358,56 @@ class FreeRTOSBluetooth(context: Context) {
 
         characteristic.setValue(value);
         gattConnection.writeCharacteristic(characteristic);
+    }
+
+    fun readCharacteristic(call: MethodCall, result: MethodChannel.Result) {
+        val deviceUUID = call.argument<String>("deviceUUID")
+        val serviceUUID = call.argument<String>("serviceUUID")
+        val characteristicUUID = call.argument<String>("characteristicUUID")
+
+        if (deviceUUID == null) {
+            result.error("404", "deviceUUID param", "deviceUUID param should be sent")
+            return
+        }
+
+        if (serviceUUID == null) {
+            result.error("404", "serviceUUID param", "serviceUUID param should be sent")
+            return
+        }
+
+        if (characteristicUUID == null) {
+            result.error("404", "characteristicUUID param", "characteristicUUID param should be sent")
+            return
+        }
+
+        val gattConnection = bluetoothGattConnections[deviceUUID];
+
+        if (gattConnection === null) {
+            result.error("404", "gattConnection", "gattConnection not found")
+            return
+        }
+
+        val service = gattConnection.getService(UUID.fromString(serviceUUID))
+
+        if (service === null) {
+            result.error("404", "service: $serviceUUID", "service not found")
+            return
+        }
+
+        val characteristic = service.getCharacteristic(UUID.fromString(characteristicUUID))
+
+        if (characteristic === null) {
+            result.error("404", "characteristic: $characteristicUUID", "characteristic not found")
+            return
+        }
+
+        // Check if this characteristic actually has READ property
+        // Check if this characteristic actually has READ property
+        if (characteristic.properties and PROPERTY_READ == 0) {
+            Log.e(TAG, "ERROR: Characteristic cannot be read")
+            return
+        }
+
+        result.success(gattConnection.readCharacteristic(characteristic));
     }
 }
