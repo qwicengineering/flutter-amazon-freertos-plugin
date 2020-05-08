@@ -137,16 +137,6 @@ abstract class _BluetoothStore with Store {
     String get demoRead => "c6f2d9e3-49e7-4125-9014-bfc6d669ff01";
     String get demoWrite => "c6f2d9e3-49e7-4125-9014-bfc6d669ff02";
 
-    /* 
-        IOS:
-        serviceUUID:"C6F2D9E3-49E7-4125-9014-BFC6D669FF00"
-        uuid:"C6F2D9E3-49E7-4125-9014-BFC6D669FF01"
-
-        Android:
-        serviceUUID:"c6f2d9e3-49e7-4125-9014-bfc6d669ff00"
-        uuid:"c6f2d9e3-49e7-4125-9014-bfc6d669ff01"
-     */
-
     @computed
     bool get isBluetoothSupportedAndOn => bluetoothState == BluetoothState.POWERED_ON;
 }
