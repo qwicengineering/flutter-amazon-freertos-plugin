@@ -124,7 +124,7 @@ class FreeRTOSBluetooth(context: Context) {
                     val bondState = gatt.device.bondState;
 
                     // Take action depending on the bond state
-                    if(bondState == BluetoothDevice.BOND_NONE || bondState == BluetoothDevice.BOND_BONDED) {
+                    if(bondState == BluetoothDevice.BOND_BONDED) {
                         Log.i(TAG, "Connected to GATT server.");
                         // Needs to requests the needed MTU size, otherwise an
                         // "BT GATT: attribute value too long, to be truncated to 22" error is displayed
@@ -272,8 +272,7 @@ class FreeRTOSBluetooth(context: Context) {
                 return
             }
             awsFreeRTOSManager.disconnectFromDevice(connectedDevice);
-//            gattConnection.disconnect();
-//            bluetoothDevices.remove(deviceUUID);
+            gattConnection.disconnect();
             connectedDevices.remove(deviceUUID);
             bluetoothGattConnections.remove(deviceUUID);
             result.success(null);
@@ -354,7 +353,6 @@ class FreeRTOSBluetooth(context: Context) {
             result.error("404", "characteristic: $characteristicUUID", "characteristic not found")
             return
         }
-        val wt = characteristic.writeType;
 
         characteristic.setValue(value);
         gattConnection.writeCharacteristic(characteristic);
@@ -401,7 +399,6 @@ class FreeRTOSBluetooth(context: Context) {
             return
         }
 
-        // Check if this characteristic actually has READ property
         // Check if this characteristic actually has READ property
         if (characteristic.properties and PROPERTY_READ == 0) {
             Log.e(TAG, "ERROR: Characteristic cannot be read")
