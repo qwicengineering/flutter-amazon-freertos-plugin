@@ -52,6 +52,7 @@ class BluetoothDeviceScreen extends StatelessWidget {
             }
 
             BluetoothCharacteristic customChar = characteristics.firstWhere((c) => c.uuid.toString().toLowerCase() == bluetoothStore.demoRead);
+            await customChar.readValue();
             print(decodeToInt(customChar.value));
         }
 

@@ -112,6 +112,16 @@ class BluetoothCharacteristic {
             }
         );
     }
+
+    Future<void> readValue() async {
+        await _channel.invokeMethod("readCharacteristic", 
+            { 
+                "deviceUUID": deviceUUID,
+                "serviceUUID": serviceUUID,
+                "characteristicUUID": uuid,
+            }
+        );
+    }
 }
 
 class BluetoothCharacteristicProperties {

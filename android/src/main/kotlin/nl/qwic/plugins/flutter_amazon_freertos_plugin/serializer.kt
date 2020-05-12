@@ -68,8 +68,8 @@ fun dumpCharacteristicProperties(characteristic: BluetoothGattCharacteristic): M
     return mutableMapOf(
         "isReadable" to (properties and BluetoothGattCharacteristic.PROPERTY_READ != 0),
         "isWritableWithoutResponse" to (properties and BluetoothGattCharacteristic.PROPERTY_WRITE_NO_RESPONSE != 0),
-        "isWritable" to (properties and BluetoothGattCharacteristic.PROPERTY_WRITE_NO_RESPONSE != 0),
-        "isNotifying" to (properties and BluetoothGattCharacteristic.PROPERTY_WRITE != 0),
+        "isWritable" to (properties and BluetoothGattCharacteristic.PROPERTY_WRITE != 0),
+        "isNotifying" to (properties and BluetoothGattCharacteristic.PROPERTY_NOTIFY != 0),
         "isIndicatable" to (properties and BluetoothGattCharacteristic.PROPERTY_INDICATE != 0),
         "allowsSignedWrites" to (properties and BluetoothGattCharacteristic.PROPERTY_SIGNED_WRITE != 0),
         "hasExtendedProperties" to (properties and BluetoothGattCharacteristic.PROPERTY_EXTENDED_PROPS != 0),
@@ -98,7 +98,7 @@ fun dumpServiceCharacteristics(service: BluetoothGattService, deviceUUID: String
 fun dumpFreeRTOSDeviceServiceInfo(service: BluetoothGattService, deviceUUID: String): Map<String, Any> {
     val primaryServiceMap: MutableMap<String, Any> = mutableMapOf(
             "uuid" to service.uuid.toString(),
-            "isPrimary" to (service.type == BluetoothGattService.SERVICE_TYPE_PRIMARY),
+            "isPrimary" to (service.type and BluetoothGattService.SERVICE_TYPE_PRIMARY != 0),
             "deviceUUID" to deviceUUID,
             "characteristics" to dumpServiceCharacteristics(service, deviceUUID),
             "includedServices" to mutableListOf<Any>()
