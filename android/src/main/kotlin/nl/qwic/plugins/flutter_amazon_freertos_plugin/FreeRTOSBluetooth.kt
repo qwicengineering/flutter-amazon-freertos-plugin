@@ -76,14 +76,31 @@ class FreeRTOSBluetooth(context: Context) {
         result.success(dumpBluetoothState(bluetoothAdapter.state))
     }
 
-    // TODO: return found device on every scanResult
-    fun startScanForDevices(call: MethodCall, result: MethodChannel.Result) {
-        try {
-            scanDevices()
-            result.success(null)
-        } catch(error: Exception) {
-            result.error("500", error.message, error)
-        }
+    fun startScanForDevicesOnListen(id: Int, args: Any?, sink: EventChannel.EventSink   ) {
+        val map = args as Map<*, *>
+        val timeout = (map["timeout"] as Int).toLong()
+        bluetoothDevices.clear();
+        freeRTOSDevices.clear();
+        awsFreeRTOSManager.startScanDevices(
+            object: BleScanResultCallback() {
+                override fun onBleScanResult(scanResult: ScanResult) {
+                    val device = scanResult.device
+                    if(!bluetoothDevices.contains(device.address)) {
+                        bluetoothDevices[device.address] = device
+                        freeRTOSDevices[device.address] = dumpBlueToothDeviceInfo(device)
+                        sink.success(dumpBlueToothDeviceInfo(device));
+                    }
+                }
+                override fun onBleScanFailed(errorCode: Int) {
+                    print(errorCode)
+                    sink.error(errorCode.toString(), "Error in onBleScan method", "");
+                }
+            }, timeout
+        )
+    }
+
+    fun startScanForDevicesOnCancel(id: Int, args: Any?) {
+//        awsFreeRTOSManager.stopScanDevices();
     }
 
     fun stopScanForDevices(call: MethodCall, result: MethodChannel.Result) {
@@ -140,6 +157,7 @@ class FreeRTOSBluetooth(context: Context) {
                     }
 
                 } else if (newState == BluetoothProfile.STATE_DISCONNECTED) {
+                    gatt.disconnect();
                     gatt.close();
                     Log.i(TAG, "Disconnected from GATT server.");
                 } else {
@@ -147,6 +165,7 @@ class FreeRTOSBluetooth(context: Context) {
                 }
             } else {
                 // An error happened...figure out what happened!
+                gatt.disconnect();
                 gatt.close();
             }
 
@@ -228,7 +247,7 @@ class FreeRTOSBluetooth(context: Context) {
 
     fun deviceStateOnListen(id: Int, args: Any?, sink: EventChannel.EventSink) {
         try {
-        val deviceUUID = args  as String
+        val deviceUUID = args as String
             val device = bluetoothDevices[deviceUUID]
             if(deviceUUID == null) {
                 sink.error("404", "deviceUUID param", "deviceUUID param should be sent")
@@ -272,8 +291,9 @@ class FreeRTOSBluetooth(context: Context) {
                 return
             }
             awsFreeRTOSManager.disconnectFromDevice(connectedDevice);
-            gattConnection.disconnect();
             connectedDevices.remove(deviceUUID);
+            gattConnection.disconnect();
+            gattConnection.close();
             bluetoothGattConnections.remove(deviceUUID);
             result.success(null);
         } catch(error: Exception) {

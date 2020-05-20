@@ -12,12 +12,13 @@ class BluetoothStore = _BluetoothStore with _$BluetoothStore;
 // Bluetooth low energy APIs via Mobx Store
 abstract class _BluetoothStore with Store {
     FlutterAmazonFreeRTOSPlugin amazonFreeRTOSPlugin = FlutterAmazonFreeRTOSPlugin.instance;
+    StreamSubscription _scanforDevicesSubscription;
 
     @observable
     BluetoothState bluetoothState = BluetoothState.UNKNOWN;
 
     @observable
-    List<FreeRTOSDevice> devicesNearby = [];
+    ObservableList<FreeRTOSDevice> devicesNearby = ObservableList.of([]);
 
     @observable
     FreeRTOSDevice activeDevice;
@@ -92,9 +93,15 @@ abstract class _BluetoothStore with Store {
             if(
                 Platform.isIOS || 
                 (Platform.isAndroid && status == PermissionStatus.granted)
-            ) {
-                await amazonFreeRTOSPlugin.startScanForDevices();
-                print("Start scanning for nearby BLE devices");
+            ) { 
+                print("Start scanning for nearby BLE devices");      
+                devicesNearby.clear();                         
+                _scanforDevicesSubscription = amazonFreeRTOSPlugin.startScanForDevices(timeout: 3000).listen((value) {                    
+                    devicesNearby.add(value);
+                });
+
+                // Other way to do it:
+                // await for (final scanResult in amazonFreeRTOSPlugin.startScanForDevices()) {}                            
             }
         } catch (e) {
             print("Error: Failed to start scan startScanning()");
@@ -105,6 +112,8 @@ abstract class _BluetoothStore with Store {
     @action
     Future<void> stopScanning() async {
         try {
+            _scanforDevicesSubscription.cancel();
+            _scanforDevicesSubscription = null;
             amazonFreeRTOSPlugin.stopScanForDevices();
             print("Stop scanning for nearby BLE devices");
         } catch (e) {

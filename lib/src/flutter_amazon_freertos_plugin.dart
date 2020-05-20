@@ -1,54 +1,56 @@
 part of flutter_amazon_freertos_plugin;
 
 typedef OnBluetoothStateChange(BluetoothState bluetoothState);
-
 class FlutterAmazonFreeRTOSPlugin {
-    static final logger = Logger("FlutterAmazonFreeRTOSPlugin");
+static final logger = Logger("FlutterAmazonFreeRTOSPlugin");
+static const pkgName = "nl.qwic.plugins.flutter_amazon_freertos_plugin";
+final MethodChannel channel = const MethodChannel(pkgName);
+static FlutterAmazonFreeRTOSPlugin _instance = new FlutterAmazonFreeRTOSPlugin();
+static FlutterAmazonFreeRTOSPlugin get instance => _instance;
 
-    static const pkgName = "nl.qwic.plugins.flutter_amazon_freertos_plugin";
-    final MethodChannel channel = const MethodChannel(pkgName);
+Future<BluetoothState> get bluetoothState async {
+    final int bluetoothState = await channel.invokeMethod("bluetoothState");
+    return BluetoothState.values[bluetoothState];
+}
 
-    static FlutterAmazonFreeRTOSPlugin _instance = new FlutterAmazonFreeRTOSPlugin();
-    static FlutterAmazonFreeRTOSPlugin get instance => _instance;
+void registerBluetoothStateChangeCallback(OnBluetoothStateChange onBluetoothStateChange) {
+    const _method = "bluetoothStateChangeCallback";
 
-    Future<BluetoothState> get bluetoothState async {
-        final int bluetoothState = await channel.invokeMethod("bluetoothState");
-        return BluetoothState.values[bluetoothState];
+    if (onBluetoothStateChange == null) {
+        PluginScaffold.removeCallHandlersWithName(channel, _method);
+        return;
     }
 
-    void registerBluetoothStateChangeCallback(OnBluetoothStateChange onBluetoothStateChange) {
-        const _method = "bluetoothStateChangeCallback";
+    PluginScaffold.setCallHandler(channel, _method, (bluetoothState) {
+        onBluetoothStateChange(BluetoothState.values[bluetoothState]);
+    });
+}
 
-        if (onBluetoothStateChange == null) {
-            PluginScaffold.removeCallHandlersWithName(channel, _method);
-            return;
-        }
+Stream<FreeRTOSDevice> startScanForDevices({ List<String> serviceUUIDS: const [], int timeout = 0}) {
+    return PluginScaffold.createStream(channel, "startScanForDevices", {
+        "serviceUUIDS": serviceUUIDS,
+        "timeout": timeout,
+    }).map((value) {
+        return FreeRTOSDevice.fromJson(value);
+    }).handleError((e) {
+        Exception(e);
+    });
+}
 
-        PluginScaffold.setCallHandler(channel, _method, (bluetoothState) {
-            onBluetoothStateChange(BluetoothState.values[bluetoothState]);
-        });
-    }
+Future<void> stopScanForDevices() async {
+    await channel.invokeMethod("stopScanForDevices");
+}
 
-    Future<void> startScanForDevices([List<String> serviceUUIDS = const []]) async {
-        await channel.invokeMethod("startScanForDevices", { "serviceUUIDS": serviceUUIDS });
-    }
+Future<void> rescanForDevices([List<String> serviceUUIDS = const []]) async {
+    await channel.invokeMethod("rescanForDevices", {"servieUUIDS": serviceUUIDS});
+}
 
-    Future<void> stopScanForDevices() async {
-        await channel.invokeMethod("stopScanForDevices");
-    }
+Future<List<FreeRTOSDevice>> get discoveredDevices async {
+    final List devices = await channel.invokeListMethod("listDiscoveredDevices");
+    return List<FreeRTOSDevice>.from(devices.map((device) {
+        return FreeRTOSDevice.fromJson(device);
+    }));
+}
 
-    Future<void> rescanForDevices([List<String> serviceUUIDS = const []]) async {
-        await channel.invokeMethod("rescanForDevices", { "servieUUIDS": serviceUUIDS });
-    }
-
-    Future<List<FreeRTOSDevice>> get discoveredDevices async {
-        final List devices = await channel.invokeListMethod("listDiscoveredDevices");
-        return List<FreeRTOSDevice>.from(
-            devices.map((device) {
-                return FreeRTOSDevice.fromJson(device);
-            })
-        );
-    }
-
-    //String get pkgName => pkgName;
+//String get pkgName => pkgName;
 }
