@@ -95,6 +95,7 @@ class FreeRTOSBluetooth(context: Context) {
                     print(errorCode)
                     sink.error(errorCode.toString(), "Error in onBleScan method", "");
                 }
+
             }, timeout
         )
     }

@@ -52,7 +52,7 @@ abstract class _BluetoothStore with Store {
         // from list automatically.
         // rescanForDevices() freshes the device list from the platform side.
         try {
-            devicesNearby = await amazonFreeRTOSPlugin.discoveredDevices;
+            devicesNearby = ObservableList.of(await amazonFreeRTOSPlugin.discoveredDevices);
             print("devicesNearby");
             print(devicesNearby);
         } catch (e) {
@@ -96,8 +96,8 @@ abstract class _BluetoothStore with Store {
             ) { 
                 print("Start scanning for nearby BLE devices");      
                 devicesNearby.clear();                         
-                _scanforDevicesSubscription = amazonFreeRTOSPlugin.startScanForDevices(timeout: 3000).listen((value) {                    
-                    devicesNearby.add(value);
+                _scanforDevicesSubscription = amazonFreeRTOSPlugin.startScanForDevices(timeout: 3000).listen((scanResult) {                    
+                    devicesNearby.add(scanResult);
                 });
 
                 // Other way to do it:
