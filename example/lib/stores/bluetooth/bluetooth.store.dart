@@ -95,10 +95,13 @@ abstract class _BluetoothStore with Store {
                 (Platform.isAndroid && status == PermissionStatus.granted)
             ) { 
                 print("Start scanning for nearby BLE devices");      
-                devicesNearby.clear();                         
-                _scanforDevicesSubscription = amazonFreeRTOSPlugin.startScanForDevices(timeout: 3000).listen((scanResult) {                    
+                devicesNearby.clear();
+                // If timeout is not sent, then scanning won't stop until we call amazonFreeRTOSPlugin.stopScanForDevices()
+                _scanforDevicesSubscription = amazonFreeRTOSPlugin.startScanForDevices(scanDuration: 3000).listen((scanResult) {                    
                     devicesNearby.add(scanResult);
-                });
+                }, onDone: () {
+                    print("----------- scan done ----------");
+                }); 
 
                 // Other way to do it:
                 // await for (final scanResult in amazonFreeRTOSPlugin.startScanForDevices()) {}                            
@@ -123,8 +126,14 @@ abstract class _BluetoothStore with Store {
     }
 
     Future<void> rescan() async {
-        try {
-            amazonFreeRTOSPlugin.rescanForDevices();
+        try {            
+            devicesNearby.clear();
+            // If timeout is not sent, then scanning won't stop until we call amazonFreeRTOSPlugin.stopScanForDevices()
+            _scanforDevicesSubscription = amazonFreeRTOSPlugin.rescanForDevices(scanDuration: 3000).listen((scanResult) {                    
+                devicesNearby.add(scanResult);
+            }, onDone: () {
+                print("----------- rescan done ----------");
+            });
         } catch (e) {
             print("Error: Failed to rescan rescanForDevices()");
             print(e);

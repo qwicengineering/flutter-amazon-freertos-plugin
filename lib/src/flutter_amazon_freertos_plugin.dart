@@ -26,10 +26,10 @@ void registerBluetoothStateChangeCallback(OnBluetoothStateChange onBluetoothStat
     });
 }
 
-Stream<FreeRTOSDevice> startScanForDevices({ List<String> serviceUUIDS: const [], int timeout = 0}) {
+Stream<FreeRTOSDevice> startScanForDevices({ List<String> serviceUUIDS: const [], int scanDuration = 0}) {
     return PluginScaffold.createStream(channel, "startScanForDevices", {
         "serviceUUIDS": serviceUUIDS,
-        "timeout": timeout,
+        "scanDuration": scanDuration,
     }).map((value) {
         return FreeRTOSDevice.fromJson(value);
     }).handleError((e) {
@@ -41,8 +41,15 @@ Future<void> stopScanForDevices() async {
     await channel.invokeMethod("stopScanForDevices");
 }
 
-Future<void> rescanForDevices([List<String> serviceUUIDS = const []]) async {
-    await channel.invokeMethod("rescanForDevices", {"servieUUIDS": serviceUUIDS});
+Stream<FreeRTOSDevice> rescanForDevices({List<String> serviceUUIDS = const [], int scanDuration = 0}) {
+    return PluginScaffold.createStream(channel, "rescanForDevices", {
+        "servieUUIDS": serviceUUIDS,
+        "scanDuration": scanDuration,
+    }).map((value) {
+        return FreeRTOSDevice.fromJson(value);
+    }).handleError((e) {
+        Exception(e);
+    });
 }
 
 Future<List<FreeRTOSDevice>> get discoveredDevices async {

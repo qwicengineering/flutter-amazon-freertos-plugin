@@ -21,28 +21,6 @@ import software.amazon.freertos.amazonfreertossdk.BleScanResultCallback
 import java.util.*
 import kotlin.collections.ArrayList
 
-
-/*
-    methodMap: [
-        "bluetoothState": plugin.bluetoothState,
-        "startScanForDevices": plugin.startScanForDevices,
-        "stopScanForDevices": plugin.stopScanForDevices,
-        "rescanForDevices": plugin.rescanForDevices,
-        "connectToDeviceId": plugin.connectToDeviceId,
-        "disconnectFromDeviceId": plugin.disconnectFromDeviceId,
-        "deviceState": plugin.deviceState,
-        "deviceStateOnListen": plugin.deviceStateOnListen,
-        "deviceStateOnCancel": plugin.deviceStateOnCancel,
-        "listDiscoveredDevices": plugin.listDiscoveredDevices,
-        "listServicesForDeviceId": plugin.listServicesForDevice,
-        "writeDescriptor": plugin.writeDescriptor,
-        "writeCharacteristic": plugin.writeCharacteristic,
-        "setNotification": plugin.setNotification,
-        "getMtu": plugin.getMtu,
-        "setMtu": plugin.setMtu
-    ]
-* */
-
 class FreeRTOSBluetooth(context: Context) {
     private val context = context
     private val TAG = "FreeRTOSBluetooth"
@@ -55,30 +33,11 @@ class FreeRTOSBluetooth(context: Context) {
     private val bluetoothGattConnections: MutableMap<String, BluetoothGatt> = mutableMapOf()
     private var deviceStateReceiver: BroadcastReceiver? = null
 
-    private fun scanDevices() {
-        awsFreeRTOSManager.startScanDevices(
-            object: BleScanResultCallback() {
-                override fun onBleScanResult(scanResult: ScanResult) {
-                    val device = scanResult.device
-                    if(!bluetoothDevices.contains(device.address)) {
-                        bluetoothDevices[device.address] = device
-                        freeRTOSDevices[device.address] = dumpBlueToothDeviceInfo(device)
-                    }
-                }
-                override fun onBleScanFailed(errorCode: Int) {
-                    print(errorCode)
-                }
-            }, 0
-        )
-    }
-
     fun bluetoothState(call: MethodCall, result: MethodChannel.Result) {
         result.success(dumpBluetoothState(bluetoothAdapter.state))
     }
 
-    fun startScanForDevicesOnListen(id: Int, args: Any?, sink: EventChannel.EventSink   ) {
-        val map = args as Map<*, *>
-        val timeout = (map["timeout"] as Int).toLong()
+    private fun scanDevices(scanDuration: Long, sink: EventChannel.EventSink) {
         bluetoothDevices.clear();
         freeRTOSDevices.clear();
         awsFreeRTOSManager.startScanDevices(
@@ -93,15 +52,34 @@ class FreeRTOSBluetooth(context: Context) {
                 }
                 override fun onBleScanFailed(errorCode: Int) {
                     print(errorCode)
-                    sink.error(errorCode.toString(), "Error in onBleScan method", "");
+                    sink.error(errorCode.toString(), "Error in onBleScan method", "")
                 }
-
-            }, timeout
+            }, scanDuration
         )
+
+        // Ends the stream if scanDuration is sent
+        if(scanDuration > 0) {
+            val timer = Timer("endStreamOnScanDuration", true);
+            timer.schedule(object: TimerTask() {
+                override fun run() {
+                    sink.endOfStream();
+                }
+            } ,scanDuration)
+        }
+    }
+
+    fun startScanForDevicesOnListen(id: Int, args: Any?, sink: EventChannel.EventSink   ) {
+        try {
+            val map = args as Map<*, *>
+            val scanDuration = (map["scanDuration"] as Int).toLong()
+            scanDevices(scanDuration, sink);
+        } catch(error: Exception) {
+            sink.error("500", error.message, error)
+        }
     }
 
     fun startScanForDevicesOnCancel(id: Int, args: Any?) {
-//        awsFreeRTOSManager.stopScanDevices();
+        // This method is triggered once sink.endOfStream() is run
     }
 
     fun stopScanForDevices(call: MethodCall, result: MethodChannel.Result) {
@@ -113,16 +91,19 @@ class FreeRTOSBluetooth(context: Context) {
         }
     }
 
-    fun rescanForDevices(call: MethodCall, result: MethodChannel.Result) {
+    fun rescanForDevicesOnListen(id: Int, args: Any?, sink: EventChannel.EventSink   ) {
         try {
+            val map = args as Map<*, *>
+            val scanDuration = (map["scanDuration"] as Int).toLong()
             awsFreeRTOSManager.stopScanDevices()
-            bluetoothDevices.clear()
-            freeRTOSDevices.clear()
-            scanDevices()
-            result.success(null)
+            scanDevices(scanDuration, sink)
         } catch(error: Exception) {
-            result.error("500", error.message, error)
+            sink.error("500", error.message, error)
         }
+    }
+
+    fun rescanForDevicesOnCancel(id: Int, args: Any?) {
+        // This method is triggered once sink.endOfStream() is run
     }
 
     fun listDiscoveredDevices(call: MethodCall, result: MethodChannel.Result) {
