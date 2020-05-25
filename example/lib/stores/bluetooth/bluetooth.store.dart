@@ -12,12 +12,13 @@ class BluetoothStore = _BluetoothStore with _$BluetoothStore;
 // Bluetooth low energy APIs via Mobx Store
 abstract class _BluetoothStore with Store {
     FlutterAmazonFreeRTOSPlugin amazonFreeRTOSPlugin = FlutterAmazonFreeRTOSPlugin.instance;
+    StreamSubscription _scanforDevicesSubscription;
 
     @observable
     BluetoothState bluetoothState = BluetoothState.UNKNOWN;
 
     @observable
-    List<FreeRTOSDevice> devicesNearby = [];
+    ObservableList<FreeRTOSDevice> devicesNearby = ObservableList.of([]);
 
     @observable
     FreeRTOSDevice activeDevice;
@@ -51,7 +52,7 @@ abstract class _BluetoothStore with Store {
         // from list automatically.
         // rescanForDevices() freshes the device list from the platform side.
         try {
-            devicesNearby = await amazonFreeRTOSPlugin.discoveredDevices;
+            devicesNearby = ObservableList.of(await amazonFreeRTOSPlugin.discoveredDevices);
             print("devicesNearby");
             print(devicesNearby);
         } catch (e) {
@@ -92,9 +93,18 @@ abstract class _BluetoothStore with Store {
             if(
                 Platform.isIOS || 
                 (Platform.isAndroid && status == PermissionStatus.granted)
-            ) {
-                await amazonFreeRTOSPlugin.startScanForDevices();
-                print("Start scanning for nearby BLE devices");
+            ) { 
+                print("Start scanning for nearby BLE devices");      
+                devicesNearby.clear();
+                // If timeout is not sent, then scanning won't stop until we call amazonFreeRTOSPlugin.stopScanForDevices()
+                _scanforDevicesSubscription = amazonFreeRTOSPlugin.startScanForDevices(scanDuration: 3000).listen((scanResult) {                    
+                    devicesNearby.add(scanResult);
+                }, onDone: () {
+                    print("----------- scan done ----------");
+                }); 
+
+                // Other way to do it:
+                // await for (final scanResult in amazonFreeRTOSPlugin.startScanForDevices()) {}                            
             }
         } catch (e) {
             print("Error: Failed to start scan startScanning()");
@@ -105,6 +115,8 @@ abstract class _BluetoothStore with Store {
     @action
     Future<void> stopScanning() async {
         try {
+            _scanforDevicesSubscription.cancel();
+            _scanforDevicesSubscription = null;
             amazonFreeRTOSPlugin.stopScanForDevices();
             print("Stop scanning for nearby BLE devices");
         } catch (e) {
@@ -114,8 +126,14 @@ abstract class _BluetoothStore with Store {
     }
 
     Future<void> rescan() async {
-        try {
-            amazonFreeRTOSPlugin.rescanForDevices();
+        try {            
+            devicesNearby.clear();
+            // If timeout is not sent, then scanning won't stop until we call amazonFreeRTOSPlugin.stopScanForDevices()
+            _scanforDevicesSubscription = amazonFreeRTOSPlugin.rescanForDevices(scanDuration: 3000).listen((scanResult) {                    
+                devicesNearby.add(scanResult);
+            }, onDone: () {
+                print("----------- rescan done ----------");
+            });
         } catch (e) {
             print("Error: Failed to rescan rescanForDevices()");
             print(e);

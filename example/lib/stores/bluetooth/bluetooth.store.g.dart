@@ -36,14 +36,14 @@ mixin _$BluetoothStore on _BluetoothStore, Store {
   final _$devicesNearbyAtom = Atom(name: '_BluetoothStore.devicesNearby');
 
   @override
-  List<FreeRTOSDevice> get devicesNearby {
+  ObservableList<FreeRTOSDevice> get devicesNearby {
     _$devicesNearbyAtom.context.enforceReadPolicy(_$devicesNearbyAtom);
     _$devicesNearbyAtom.reportObserved();
     return super.devicesNearby;
   }
 
   @override
-  set devicesNearby(List<FreeRTOSDevice> value) {
+  set devicesNearby(ObservableList<FreeRTOSDevice> value) {
     _$devicesNearbyAtom.context.conditionallyRunInAction(() {
       super.devicesNearby = value;
       _$devicesNearbyAtom.reportChanged();
