@@ -58,6 +58,7 @@ class FreeRTOSBluetooth(context: Context) {
         )
 
         // Ends the stream if scanDuration is sent
+        // (Using a timer since I don't find an 'onDone' callback in awd sdk)
         if(scanDuration > 0) {
             val timer = Timer("endStreamOnScanDuration", true);
             timer.schedule(object: TimerTask() {
@@ -131,8 +132,8 @@ class FreeRTOSBluetooth(context: Context) {
                         // TODO: check what is the best value to send here
                         gatt.requestMtu(510);
                         // Attempts to discover services after successful connection.
-                        val servicesDiscovered = gatt.discoverServices();
-                        Log.i(TAG, "Attempting to start service discovery: $servicesDiscovered")
+//                        val servicesDiscovered = gatt.discoverServices();
+//                        Log.i(TAG, "Attempting to start service discovery: $servicesDiscovered")
                     }else if (bondState == BluetoothDevice.BOND_BONDING) {
                         // Bonding process in progress, let it complete
                         Log.i(TAG, "waiting for bonding to complete");
@@ -185,7 +186,7 @@ class FreeRTOSBluetooth(context: Context) {
             Log.w(TAG, "onMtuChanged mtu: $mtu");
         }
     }
-
+    // TODO: Gatt connection pending
     fun connectToDeviceId(call: MethodCall, result: MethodChannel.Result) {
         try {
             val deviceUUID = call.argument<String>("deviceUUID")
@@ -201,12 +202,36 @@ class FreeRTOSBluetooth(context: Context) {
             }
             val credentialsProvider: AWSCredentialsProvider = AWSMobileClient.getInstance()
             connectedDevices[device.address] = awsFreeRTOSManager.connectToDevice(device, connectionStatusCallback, credentialsProvider, reconnect)
-            bluetoothGattConnections[device.address] = device.connectGatt(context, false, bluetoothGattCallback)
+//            bluetoothGattConnections[device.address] = device.connectGatt(context, false, bluetoothGattCallback)
             result.success(null)
         } catch(error: Exception) {
             result.error("500", error.message, error)
         }
     }
+
+//    fun connectToDeviceIdOnListen(id: Int, args: Any?, sink: EventChannel.EventSink) {
+//        try {
+//            val map = args as Map<*, *>
+//            val deviceUUID = map["deviceUUID"] as String;
+//            val reconnect = map["reconnect"] as Boolean? ?: true;
+//
+//            val device = bluetoothDevices[deviceUUID]
+//            if(deviceUUID == null) {
+//                sink.error("404", "deviceUUID param", "deviceUUID param should be sent")
+//                return
+//            }
+//            if(device == null) {
+//                sink.error("404", "Device not found", null);
+//                return
+//            }
+//            val credentialsProvider: AWSCredentialsProvider = AWSMobileClient.getInstance()
+//            connectedDevices[device.address] = awsFreeRTOSManager.connectToDevice(device, connectionStatusCallback, credentialsProvider, reconnect)
+////            bluetoothGattConnections[device.address] = device.connectGatt(context, false, bluetoothGattCallback)
+//            sink.success(null)
+//        } catch(error: Exception) {
+//            sink.error("500", error.message, error)
+//        }
+//    }
 
     fun deviceState(call: MethodCall, result: MethodChannel.Result) {
         try {
@@ -229,8 +254,9 @@ class FreeRTOSBluetooth(context: Context) {
 
     fun deviceStateOnListen(id: Int, args: Any?, sink: EventChannel.EventSink) {
         try {
-        val deviceUUID = args as String
+            val deviceUUID = args as String
             val device = bluetoothDevices[deviceUUID]
+
             if(deviceUUID == null) {
                 sink.error("404", "deviceUUID param", "deviceUUID param should be sent")
                 return
@@ -239,8 +265,15 @@ class FreeRTOSBluetooth(context: Context) {
                 sink.error("500", "device not found", "There's no device with the given deviceUUID param")
                 return
             }
+
             deviceStateReceiver = object : BroadcastReceiver() {
                 override fun onReceive(context: Context, intent: Intent) {
+                    val bondState = device.bondState;
+                    val action = intent.action;
+                    val data = intent.data;
+                    if(intent.action == BluetoothDevice.ACTION_BOND_STATE_CHANGED){
+                        print("hey");
+                    }
                     val state = bluetoothManager.getConnectionState(device, BluetoothProfile.GATT)
                     sink.success(dumpBluetoothDeviceState(state))
                 }
@@ -248,6 +281,9 @@ class FreeRTOSBluetooth(context: Context) {
             val filter = IntentFilter()
             filter.addAction(BluetoothDevice.ACTION_ACL_CONNECTED)
             filter.addAction(BluetoothDevice.ACTION_ACL_DISCONNECTED)
+            filter.addAction(BluetoothDevice.ACTION_ACL_DISCONNECTED)
+            filter.addAction(BluetoothDevice.ACTION_BOND_STATE_CHANGED)
+            filter.addAction(BluetoothDevice.ACTION_PAIRING_REQUEST)
             context.registerReceiver(deviceStateReceiver, filter)
         } catch(error: Exception) {
             sink.error("500", error.message, error)
@@ -258,51 +294,52 @@ class FreeRTOSBluetooth(context: Context) {
         if(deviceStateReceiver == null) return
         context.unregisterReceiver(deviceStateReceiver)
     }
-
+    // TODO: Gatt connection pending
     fun disconnectFromDeviceId(call: MethodCall, result: MethodChannel.Result) {
         try {
             val deviceUUID = call.argument<String>("deviceUUID")
             val connectedDevice = connectedDevices[deviceUUID]
-            val gattConnection = bluetoothGattConnections[deviceUUID]
+//            val gattConnection = bluetoothGattConnections[deviceUUID]
             if(deviceUUID == null) {
                 result.error("404", "deviceUUID param", "deviceUUID param should be sent")
                 return
             }
-            if(connectedDevice == null || gattConnection == null) {
+//            if(connectedDevice == null || gattConnection == null) {
+            if(connectedDevice == null) {
                 result.error("500", "device not found", "There's no connected device with the given deviceUUID param")
                 return
             }
             awsFreeRTOSManager.disconnectFromDevice(connectedDevice);
             connectedDevices.remove(deviceUUID);
-            gattConnection.disconnect();
-            gattConnection.close();
-            bluetoothGattConnections.remove(deviceUUID);
+//            gattConnection.disconnect();
+//            gattConnection.close();
+//            bluetoothGattConnections.remove(deviceUUID);
             result.success(null);
         } catch(error: Exception) {
             result.error("500", error.message, error)
         }
     }
-
+    // TODO: Gatt connection pending
     fun listServicesForDeviceId(call: MethodCall, result: MethodChannel.Result) {
         try {
             val deviceUUID = call.argument<String>("deviceUUID")
-            val gattConnection = bluetoothGattConnections[deviceUUID]
+//            val gattConnection = bluetoothGattConnections[deviceUUID]
             val services: MutableList<Any> = mutableListOf()
             if(deviceUUID == null) {
                 result.error("404", "deviceUUID param", "deviceUUID param should be sent")
                 return
             }
-            if(gattConnection == null) {
-                result.error("500", "GATT Connection not found", "There's no GATT connection with the given deviceUUID param")
-                return
-            }
+//            if(gattConnection == null) {
+//                result.error("500", "GATT Connection not found", "There's no GATT connection with the given deviceUUID param")
+//                return
+//            }
             /*
                 This only will have discovered services when gatt.discoverServices() completes successfully
                 Check inside bluetoothGattCallback
             */
-            gattConnection.services.forEach {
-                services.add(dumpFreeRTOSDeviceServiceInfo(it, deviceUUID))
-            }
+//            gattConnection.services.forEach {
+//                services.add(dumpFreeRTOSDeviceServiceInfo(it, deviceUUID))
+//            }
             result.success(services)
         } catch(error: Exception) {
             result.error("500", error.message, error)

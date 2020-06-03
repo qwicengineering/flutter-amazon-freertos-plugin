@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:flutter/material.dart';
 import "package:mobx/mobx.dart";
 import "package:flutter_amazon_freertos_plugin/flutter_amazon_freertos_plugin.dart";
 import 'package:permission_handler/permission_handler.dart';
@@ -94,7 +95,7 @@ abstract class _BluetoothStore with Store {
                 Platform.isIOS || 
                 (Platform.isAndroid && status == PermissionStatus.granted)
             ) { 
-                print("Start scanning for nearby BLE devices");      
+                print("Start scanning for nearby BLE devices");
                 devicesNearby.clear();
                 // If timeout is not sent, then scanning won't stop until we call amazonFreeRTOSPlugin.stopScanForDevices()
                 _scanforDevicesSubscription = amazonFreeRTOSPlugin.startScanForDevices(scanDuration: 3000).listen((scanResult) {                    
@@ -142,11 +143,22 @@ abstract class _BluetoothStore with Store {
 
     Future<void> connectDevice(FreeRTOSDevice device) async {
         try {
-            device.connect();
-            activeDevice = device;
-        } catch (e) {
-            print("Unable to connect to device: $e");
-        }
+            if(device != null) {
+                device.connect();
+                device.observeState().listen((value) async {
+                    print(value);
+                    if (value == FreeRTOSDeviceState.CONNECTED) {
+                        // Need to wait for 3 seconds due to Amazon GATT server
+                        // demo requiring extra steps to get fully connected
+                        // as it required a user verification
+                        // Timer(Duration(seconds: 3), () async => print(await _device.discoverServices()));
+                        activeDevice = device;
+                    }
+                });                   
+            }
+            } catch (e) {
+                print("Unable to connect to device: $e");
+            }
     }
 
     // AmazonFreeRTOS GATT Server Demo

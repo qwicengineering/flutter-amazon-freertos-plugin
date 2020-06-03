@@ -43,9 +43,7 @@ class BluetoothDevicesScreen extends StatelessWidget {
                     var isConnected = await device.isConnected;
                     if (!isConnected) {
                         await bluetoothStore.connectDevice(device);
-                    }
-
-                    Navigator.pushNamed(context, "/bluetoothDevice");
+                    }                    
                 },
                 splashColor: Colors.amberAccent,
                 child: Container(

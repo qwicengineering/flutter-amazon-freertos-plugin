@@ -19,14 +19,14 @@ class BluetoothDeviceScreen extends StatelessWidget {
             print(services);
         }
 
-        final stateSubscription = device.observeState().listen((value) async {
-            if (value == FreeRTOSDeviceState.CONNECTED) {
-                // Need to wait for 3 seconds due to Amazon GATT server
-                // demo requiring extra steps to get fully connected
-                // as it required a user verification
-                Timer(Duration(seconds: 3), () async => print(await device.discoverServices()));
-            }
-        });
+        // final stateSubscription = device.observeState().listen((value) async {
+        //     if (value == FreeRTOSDeviceState.CONNECTED) {
+        //         // Need to wait for 3 seconds due to Amazon GATT server
+        //         // demo requiring extra steps to get fully connected
+        //         // as it required a user verification
+        //         Timer(Duration(seconds: 3), () async => print(await device.discoverServices()));
+        //     }
+        // });
 
         void _writeToCharacteristic(int value) async {
             // start counter = 0
@@ -57,7 +57,7 @@ class BluetoothDeviceScreen extends StatelessWidget {
         }
 
         void _disconnect() async {
-            stateSubscription.cancel();
+            // stateSubscription.cancel();
             device.disconnect();
             Navigator.popAndPushNamed(context, "/bluetoothDevices");
         }
