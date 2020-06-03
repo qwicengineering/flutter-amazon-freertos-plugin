@@ -268,22 +268,22 @@ class FreeRTOSBluetooth(context: Context) {
 
             deviceStateReceiver = object : BroadcastReceiver() {
                 override fun onReceive(context: Context, intent: Intent) {
-                    val bondState = device.bondState;
-                    val action = intent.action;
-                    val data = intent.data;
-                    if(intent.action == BluetoothDevice.ACTION_BOND_STATE_CHANGED){
-                        print("hey");
+                    when (intent.action) {
+                        BluetoothDevice.ACTION_BOND_STATE_CHANGED -> {
+                            val bondState = device.bondState;
+                            sink.success(dumpBluetoothDeviceState(bondState))
+                        }
+                        else -> {
+                            val state = bluetoothManager.getConnectionState(device, BluetoothProfile.GATT)
+                            sink.success(dumpBluetoothDeviceState(state))
+                        }
                     }
-                    val state = bluetoothManager.getConnectionState(device, BluetoothProfile.GATT)
-                    sink.success(dumpBluetoothDeviceState(state))
                 }
             }
             val filter = IntentFilter()
             filter.addAction(BluetoothDevice.ACTION_ACL_CONNECTED)
             filter.addAction(BluetoothDevice.ACTION_ACL_DISCONNECTED)
-            filter.addAction(BluetoothDevice.ACTION_ACL_DISCONNECTED)
             filter.addAction(BluetoothDevice.ACTION_BOND_STATE_CHANGED)
-            filter.addAction(BluetoothDevice.ACTION_PAIRING_REQUEST)
             context.registerReceiver(deviceStateReceiver, filter)
         } catch(error: Exception) {
             sink.error("500", error.message, error)

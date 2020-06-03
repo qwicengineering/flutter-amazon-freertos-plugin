@@ -13,7 +13,10 @@ enum FreeRTOSDeviceState {
     CONNECTED,
     CONNECTING,
     DISCONNECTED,
-    DISCONNECTING
+    DISCONNECTING,
+    UNBONDED,
+    BONDING,
+    BONDED,
 }
 
 class FreeRTOSDevice {

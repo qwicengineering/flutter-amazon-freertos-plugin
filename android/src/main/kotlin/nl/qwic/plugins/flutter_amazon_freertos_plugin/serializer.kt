@@ -43,6 +43,9 @@ fun dumpBluetoothDeviceState(state: Int): Int {
     return when(state) {
         2 -> 0 // BluetoothProfile.STATE_CONNECTED = 2 and has to match with 0
         0 -> 2 // BluetoothProfile.STATE_DISCONNECTED = 0 and has to match with 2
+        10 -> 4 // BluetoothDevice.BOND_NONE = 10
+        11 -> 5 // BluetoothDevice.BOND_BONDING = 11
+        12 -> 6 // BluetoothDevice.BOND_BONDED = 12
         else -> {
             2
         }
