@@ -60,6 +60,12 @@ class FreeRTOSBluetooth {
                 sink(dumpFreeRTOSDeviceInfo(device))
         }
         notificationObservers[id] = [scanForDevicesObserver]
+        
+        // Do not end stream if scanDuration is 0
+        if scanDuration <= 0 {
+            return
+        }
+
         DispatchQueue.main.asyncAfter(deadline: .now() + .milliseconds(scanDuration)) {
             sink(FlutterEndOfEventStream)
         }
