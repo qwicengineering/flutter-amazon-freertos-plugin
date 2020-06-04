@@ -17,7 +17,7 @@ class FreeRTOSBluetooth {
     func startScanForDevices(call: FlutterMethodCall, result: @escaping FlutterResult) {
         var advertisingServiceUUIDs: [CBUUID] = awsFreeRTOSManager.advertisingServiceUUIDs
 
-        if let central = awsFreeRTOSManager.central, !central.isScanning {
+        if let central = awsFreeRTOSManager.central {
             if let args = call.arguments as? [String: Any?], let customServiceUUIDs = args["serviceUUIDS"] as? [CBUUID] {
                advertisingServiceUUIDs += customServiceUUIDs
             }
@@ -28,7 +28,41 @@ class FreeRTOSBluetooth {
     // TODO: Do we need to look for exceptions?
     func stopScanForDevices(call: FlutterMethodCall, result: @escaping FlutterResult) {
         awsFreeRTOSManager.stopScanForDevices()
-        result(nil)
+    }
+    
+    func startScanForDevicesOnListen(id: Int, args: Any?, sink: @escaping FlutterEventSink) {
+        var advertisingServiceUUIDs: [CBUUID] = awsFreeRTOSManager.advertisingServiceUUIDs
+        
+        if let central = awsFreeRTOSManager.central {
+            let args = args as! [String: Any?]
+            let scanDuration = args["scanDuration"] as? Int ?? 1000
+
+            if let customServiceUUIDs = args["serviceUUIDS"] as? [CBUUID] {
+               advertisingServiceUUIDs += customServiceUUIDs
+            }
+            central.scanForPeripherals(withServices: advertisingServiceUUIDs, options: nil)
+            sendDiscoveredDeviceInfo(id: id, scanDuration: scanDuration, sink: sink)
+        }
+    }
+    
+    func startScanForDevicesOnCancel(id: Int, args: Any?) {
+        guard let observers = notificationObservers[id] else { return }
+        for obeserver in observers {
+            NotificationCenter.default.removeObserver(obeserver)
+        }
+    }
+    
+    func sendDiscoveredDeviceInfo(id: Int, scanDuration: Int, sink: @escaping FlutterEventSink) {
+        let scanForDevicesObserver = NotificationCenter.default.addObserver(forName: .afrCentralManagerDidDiscoverDevice, object: nil, queue: nil)
+        { notification in
+                let notificationDeviceUUID = notification.userInfo?["identifier"] as! UUID
+                guard let device = self.awsFreeRTOSManager.devices[notificationDeviceUUID] else { return }
+                sink(dumpFreeRTOSDeviceInfo(device))
+        }
+        notificationObservers[id] = [scanForDevicesObserver]
+        DispatchQueue.main.asyncAfter(deadline: .now() + .milliseconds(scanDuration)) {
+            sink(FlutterEndOfEventStream)
+        }
     }
     
     // TODO: Do we need to look for exceptions?
@@ -141,7 +175,7 @@ class FreeRTOSBluetooth {
     }
     
     func writeDescriptor(call: FlutterMethodCall, result: @escaping FlutterResult) {
-        result (FlutterMethodNotImplemented)
+        result(FlutterMethodNotImplemented)
     }
     
     func writeCharacteristic(call: FlutterMethodCall, result: @escaping FlutterResult) {
