@@ -16,6 +16,8 @@ public class SwiftFlutterAmazonFreeRTOSPlugin: NSObject, FlutterPlugin {
                 "bluetoothState": plugin.bluetoothState,
                 "startScanForDevices": plugin.startScanForDevices,
                 "stopScanForDevices": plugin.stopScanForDevices,
+                "startScanForDevicesOnListen": plugin.startScanForDevicesOnListen,
+                "startScanForDevicesOnCancel": plugin.startScanForDevicesOnCancel,
                 "rescanForDevices": plugin.rescanForDevices,
                 "connectToDeviceId": plugin.connectToDeviceId,
                 "disconnectFromDeviceId": plugin.disconnectFromDeviceId,
