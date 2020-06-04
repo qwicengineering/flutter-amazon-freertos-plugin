@@ -42,7 +42,7 @@ class BluetoothDevicesScreen extends StatelessWidget {
                 onTap: () async {
                     var isConnected = await device.isConnected;
                     if (!isConnected) {
-                        await bluetoothStore.connectDevice(device);
+                        bluetoothStore.connectDevice(device, context);
                     }                    
                 },
                 splashColor: Colors.amberAccent,

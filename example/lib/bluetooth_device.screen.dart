@@ -1,4 +1,3 @@
-import "dart:async";
 import "dart:typed_data";
 
 import "package:flutter/material.dart";
@@ -13,26 +12,17 @@ class BluetoothDeviceScreen extends StatelessWidget {
     Widget build(BuildContext context)  {
         final bluetoothStore = Provider.of<BluetoothStore>(context);
         FreeRTOSDevice device = bluetoothStore.activeDevice;
+        List<BluetoothService> services = bluetoothStore.services;
 
-        void _discoverServices() async {
-            var services = await device.discoverServices();
+        void _discoverServices() {            
             print(services);
         }
 
-        // final stateSubscription = device.observeState().listen((value) async {
-        //     if (value == FreeRTOSDeviceState.CONNECTED) {
-        //         // Need to wait for 3 seconds due to Amazon GATT server
-        //         // demo requiring extra steps to get fully connected
-        //         // as it required a user verification
-        //         Timer(Duration(seconds: 3), () async => print(await device.discoverServices()));
-        //     }
-        // });
-
-        void _writeToCharacteristic(int value) async {
+        void _writeToCharacteristic(int value) {
             // start counter = 0
             // stop counter = 1
             // reset counter = 2
-            var services = await device.discoverServices();
+            // var services = await device.discoverServices();
             var characteristics = services.firstWhere((service) => service.uuid.toString().toLowerCase() == bluetoothStore.demoService).characteristics;
             if (characteristics.length < 0) {
                 print("No characteristics found");
@@ -44,7 +34,7 @@ class BluetoothDeviceScreen extends StatelessWidget {
         }
 
         void _readCharacteristic() async {
-            var services = await device.discoverServices();
+            // var services = await device.discoverServices();
             var characteristics = services.firstWhere((service) => service.uuid.toString().toLowerCase() == bluetoothStore.demoService).characteristics;
             if (characteristics.length < 0) {
                 print("No characteristics found");
@@ -56,7 +46,7 @@ class BluetoothDeviceScreen extends StatelessWidget {
             print(decodeToInt(customChar.value));
         }
 
-        void _disconnect() async {
+        void _disconnect() {
             // stateSubscription.cancel();
             device.disconnect();
             Navigator.popAndPushNamed(context, "/bluetoothDevices");

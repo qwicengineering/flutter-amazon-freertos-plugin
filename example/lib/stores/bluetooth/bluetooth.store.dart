@@ -24,6 +24,9 @@ abstract class _BluetoothStore with Store {
     @observable
     FreeRTOSDevice activeDevice;
 
+    @observable
+    ObservableList<BluetoothService> services = ObservableList.of([]);
+
     @action
     Future<void> initialize() async {
         try {
@@ -141,18 +144,31 @@ abstract class _BluetoothStore with Store {
         }
     }
 
-    Future<void> connectDevice(FreeRTOSDevice device) async {
+    Future<void> _discoverServices() async {
+        print("*** device.uuid : ${activeDevice.uuid.toString()}");
+        services = ObservableList.of(await activeDevice.discoverServices());
+        print("services - - - - - - - - - - - - - - - - - - $services");
+        // checking each services provided by device
+        services.forEach((service) {    
+            print("service $service");
+        });
+    }
+
+    Future<void> connectDevice(FreeRTOSDevice device, BuildContext context) async {
         try {
             if(device != null) {
                 device.connect();
                 device.observeState().listen((value) async {
-                    print(value);
+                    print("state -----------_____----------- $value");
                     if (value == FreeRTOSDeviceState.CONNECTED) {
+                        // TODO: check if tiemout is still necessary in iOS
                         // Need to wait for 3 seconds due to Amazon GATT server
                         // demo requiring extra steps to get fully connected
                         // as it required a user verification
-                        // Timer(Duration(seconds: 3), () async => print(await _device.discoverServices()));
+                        // Timer(Duration(seconds: 3), () async => print(await _device.discoverServices()));                        
                         activeDevice = device;
+                        await _discoverServices();
+                        Navigator.pushNamed(context, "/bluetoothDevice");
                     }
                 });                   
             }
