@@ -8,6 +8,7 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
+import android.os.Build
 import android.util.Log
 import com.amazonaws.auth.AWSCredentialsProvider
 import com.amazonaws.mobile.client.AWSMobileClient
@@ -121,41 +122,15 @@ class FreeRTOSBluetooth(context: Context) {
 
     private val bluetoothGattCallback = object : BluetoothGattCallback() {
         override fun onConnectionStateChange(gatt: BluetoothGatt, status: Int, newState: Int) {
-//            if (status == BluetoothGatt.GATT_SUCCESS) {
-//                if (newState == BluetoothProfile.STATE_CONNECTED) {
-//                    val bondState = gatt.device.bondState;
-//
-//                    // Take action depending on the bond state
-//                    if(bondState == BluetoothDevice.BOND_BONDED) {
-//                        Log.i(TAG, "Connected to GATT server.");
-//                        // Needs to requests the needed MTU size, otherwise an
-//                        // "BT GATT: attribute value too long, to be truncated to 22" error is displayed
-//                        // (https://github.com/aws/amazon-freertos-ble-android-sdk/issues/2#issuecomment-486449667)
-//                        // TODO: check what is the best value to send here
-//                        // TODO: split discoverServices in a separate method
-//                        gatt.requestMtu(510);
-//                        // Attempts to discover services after successful connection.
-//                        val servicesDiscovered = gatt.discoverServices();
-////                        Log.i(TAG, "Attempting to start service discovery: $servicesDiscovered")
-//                    }else if (bondState == BluetoothDevice.BOND_BONDING) {
-//                        // Bonding process in progress, let it complete
-//                        Log.i(TAG, "waiting for bonding to complete");
-//                    }
-//
-//                } else if (newState == BluetoothProfile.STATE_DISCONNECTED) {
-//                    gatt.disconnect();
-//                    gatt.close();
-//                    Log.i(TAG, "Disconnected from GATT server.");
-//                } else {
-//                    // We're CONNECTING or DISCONNECTING, ignore for now
-//                }
-//            } else {
-//                // An error happened...figure out what happened!
-//                gatt.disconnect();
-//                gatt.close();
-//            }
-
-
+            if (newState == BluetoothProfile.STATE_CONNECTED) {
+                Log.i(TAG, "Connected to GATT client. Attempting to start service discovery");
+                // TODO: check what is the best value to send here
+                // TODO: split discoverServices in a separate method
+                // gatt.requestMtu(510);
+//                gatt.discoverServices();
+            } else if (newState == BluetoothProfile.STATE_DISCONNECTED) {
+                Log.i(TAG, "Disconnected from GATT client");
+            }
         }
 
         override fun onServicesDiscovered(gatt: BluetoothGatt, status: Int) {
@@ -206,7 +181,12 @@ class FreeRTOSBluetooth(context: Context) {
             }
             val credentialsProvider: AWSCredentialsProvider = AWSMobileClient.getInstance()
             connectedDevices[device.address] = awsFreeRTOSManager.connectToDevice(device, connectionStatusCallback, credentialsProvider, reconnect)
-            bluetoothGattConnections[device.address] = device.connectGatt(context, false, bluetoothGattCallback)
+
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                bluetoothGattConnections[device.address] = device.connectGatt(context, false, bluetoothGattCallback, BluetoothDevice.TRANSPORT_LE)
+            } else {
+                bluetoothGattConnections[device.address] = device.connectGatt(context, false, bluetoothGattCallback)
+            }
             result.success(null)
         } catch(error: Exception) {
             result.error("500", error.message, error)
@@ -297,8 +277,10 @@ class FreeRTOSBluetooth(context: Context) {
                 return
             }
             awsFreeRTOSManager.disconnectFromDevice(connectedDevice);
+            val state: Int = bluetoothManager.getConnectionState(connectedDevice.mBluetoothDevice, GATT)
             gattConnection.disconnect();
-            gattConnection.close();
+            // TODO: not sure if this is needed
+//            gattConnection.close();
             connectedDevices.remove(deviceUUID);
             bluetoothGattConnections.remove(deviceUUID);
             result.success(null);
@@ -316,12 +298,12 @@ class FreeRTOSBluetooth(context: Context) {
                 result.error("500", "GATT Connection not found", "There's no GATT connection with the given deviceUUID param")
                 return
             }
-            if(gattConnection.discoverServices()) {
-                print("gatt discovered: ${gattConnection.services}");
-                result.success(null);
-            } else {
+
+            if(!gattConnection.discoverServices()) {
                 result.error("discover_services_error", "unknown reason", null);
             }
+
+            result.success(null);
         } catch(error: Exception) {
             result.error("500", error.message, error)
         }

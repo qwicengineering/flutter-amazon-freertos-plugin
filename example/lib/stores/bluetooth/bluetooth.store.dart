@@ -14,6 +14,7 @@ class BluetoothStore = _BluetoothStore with _$BluetoothStore;
 abstract class _BluetoothStore with Store {
     FlutterAmazonFreeRTOSPlugin amazonFreeRTOSPlugin = FlutterAmazonFreeRTOSPlugin.instance;
     StreamSubscription _scanforDevicesSubscription;
+    StreamSubscription _deviceStateSubscription;
 
     @observable
     BluetoothState bluetoothState = BluetoothState.UNKNOWN;
@@ -72,6 +73,7 @@ abstract class _BluetoothStore with Store {
 
     Future<void> startScanning() async {
         try {
+            // TODO: Permission validation should be in plugin side?
             // Location permission needed on Android to scan devices
             // (Requesting Runtime Permissions needed for Android SDK 23 and higher)
             // AWSfreeRTOS is using Android SDK 23
@@ -144,9 +146,10 @@ abstract class _BluetoothStore with Store {
         }
     }
 
+    // TODO: Services is empty [] sometimes
     Future<void> _discoverServices() async {
         print("*** device.uuid : ${activeDevice.uuid.toString()}");
-        services = ObservableList.of(await activeDevice.discoverServices());
+        services = await activeDevice.discoverServices();
         print("services - - - - - - - - - - - - - - - - - - $services");
         // checking each services provided by device
         services.forEach((service) {    
@@ -157,16 +160,16 @@ abstract class _BluetoothStore with Store {
     Future<void> connectDevice(FreeRTOSDevice device, BuildContext context) async {
         try {
             if(device != null) {
-                device.connect();
-                device.observeState().listen((value) async {
-                    print("state -----------_____----------- $value");
+                activeDevice = device;
+                activeDevice.connect();
+                _deviceStateSubscription = activeDevice.observeState().listen((value) async {
+                    print("state $value");
                     if (value == FreeRTOSDeviceState.CONNECTED) {
-                        // TODO: check if tiemout is still necessary in iOS
+                        // TODO: check if this tiemout is still necessary?
                         // Need to wait for 3 seconds due to Amazon GATT server
                         // demo requiring extra steps to get fully connected
                         // as it required a user verification
-                        // Timer(Duration(seconds: 3), () async => print(await _device.discoverServices()));                        
-                        activeDevice = device;
+                        // Timer(Duration(seconds: 3), () async => await _discoverServices());
                         await _discoverServices();
                         Navigator.pushNamed(context, "/bluetoothDevice");
                     }
@@ -175,6 +178,16 @@ abstract class _BluetoothStore with Store {
             } catch (e) {
                 print("Unable to connect to device: $e");
             }
+    }
+
+    @action
+    disconnect() {        
+        _scanforDevicesSubscription?.cancel();
+        _scanforDevicesSubscription = null;
+        _deviceStateSubscription?.cancel();
+        _deviceStateSubscription = null;
+        activeDevice.disconnect();
+        activeDevice = null;
     }
 
     // AmazonFreeRTOS GATT Server Demo

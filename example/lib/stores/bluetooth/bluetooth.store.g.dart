@@ -67,6 +67,23 @@ mixin _$BluetoothStore on _BluetoothStore, Store {
     }, _$activeDeviceAtom, name: '${_$activeDeviceAtom.name}_set');
   }
 
+  final _$servicesAtom = Atom(name: '_BluetoothStore.services');
+
+  @override
+  ObservableList<BluetoothService> get services {
+    _$servicesAtom.context.enforceReadPolicy(_$servicesAtom);
+    _$servicesAtom.reportObserved();
+    return super.services;
+  }
+
+  @override
+  set services(ObservableList<BluetoothService> value) {
+    _$servicesAtom.context.conditionallyRunInAction(() {
+      super.services = value;
+      _$servicesAtom.reportChanged();
+    }, _$servicesAtom, name: '${_$servicesAtom.name}_set');
+  }
+
   final _$initializeAsyncAction = AsyncAction('initialize');
 
   @override
@@ -102,9 +119,19 @@ mixin _$BluetoothStore on _BluetoothStore, Store {
   }
 
   @override
+  dynamic disconnect() {
+    final _$actionInfo = _$_BluetoothStoreActionController.startAction();
+    try {
+      return super.disconnect();
+    } finally {
+      _$_BluetoothStoreActionController.endAction(_$actionInfo);
+    }
+  }
+
+  @override
   String toString() {
     final string =
-        'bluetoothState: ${bluetoothState.toString()},devicesNearby: ${devicesNearby.toString()},activeDevice: ${activeDevice.toString()},isBluetoothSupportedAndOn: ${isBluetoothSupportedAndOn.toString()}';
+        'bluetoothState: ${bluetoothState.toString()},devicesNearby: ${devicesNearby.toString()},activeDevice: ${activeDevice.toString()},services: ${services.toString()},isBluetoothSupportedAndOn: ${isBluetoothSupportedAndOn.toString()}';
     return '{$string}';
   }
 }

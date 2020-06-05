@@ -48,7 +48,7 @@ class BluetoothDeviceScreen extends StatelessWidget {
 
         void _disconnect() {
             // stateSubscription.cancel();
-            device.disconnect();
+            bluetoothStore.disconnect();
             Navigator.popAndPushNamed(context, "/bluetoothDevices");
         }
         
