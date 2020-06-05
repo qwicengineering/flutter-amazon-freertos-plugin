@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import "package:mobx/mobx.dart";
 import "package:flutter_amazon_freertos_plugin/flutter_amazon_freertos_plugin.dart";
 import 'package:permission_handler/permission_handler.dart';
@@ -163,7 +164,7 @@ abstract class _BluetoothStore with Store {
         try {
             if(device != null) {
                 activeDevice = device;
-                activeDevice.connect();
+                await activeDevice.connect();
                 isConnecting = true;
                 _deviceStateSubscription = activeDevice.observeState().listen((value) async {                    
                     if (value == FreeRTOSDeviceState.CONNECTED) {
@@ -175,15 +176,17 @@ abstract class _BluetoothStore with Store {
                         
                         // TODO: discoverServices is pending
                         // await _discoverServices();
-                        isConnecting = false;
                         Navigator.pushNamed(context, "/bluetoothDevice");
-                    }         
-                });                   
-            }
-            } catch (e) {
-                isConnecting = false;
-                print("Unable to connect to device: $e");
-            }
+                    }
+                    if(value != FreeRTOSDeviceState.CONNECTING) {
+                        isConnecting = false;
+                    }
+                });                  
+            }            
+        } catch (e) {
+            isConnecting = false;
+            print("Unable to connect to device: $e");
+        }
     }
 
     @action

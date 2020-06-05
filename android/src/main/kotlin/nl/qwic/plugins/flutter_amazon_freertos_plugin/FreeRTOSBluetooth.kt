@@ -278,7 +278,7 @@ class FreeRTOSBluetooth(context: Context) {
             val state: Int = bluetoothManager.getConnectionState(connectedDevice.mBluetoothDevice, GATT)
             gattConnection.disconnect();
             // TODO: not sure if this is needed
-//            gattConnection.close();
+            gattConnection.close();
             connectedDevices.remove(deviceUUID);
             bluetoothGattConnections.remove(deviceUUID);
             result.success(null);

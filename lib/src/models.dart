@@ -36,8 +36,13 @@ class FreeRTOSDevice {
             brokerEndpoint = jsonData["brokerEndpoint"],
             mtu = jsonData["mtu"];
 
+    // It need to throw a new exception to be catched where this method is called from
     Future<void> connect() async {
-        await _channel.invokeMethod("connectToDeviceId", { "deviceUUID": uuid });
+        try {            
+            await _channel.invokeMethod("connectToDeviceId", { "deviceUUID": uuid });
+        } on PlatformException catch(e) {
+            throw new Exception(e);
+        }
     }
 
     Future<void> disconnect() async {
