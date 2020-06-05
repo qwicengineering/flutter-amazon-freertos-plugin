@@ -150,8 +150,7 @@ abstract class _BluetoothStore with Store {
     }
 
     // TODO: Services is empty [] sometimes
-    Future<void> _discoverServices() async {
-        print("*** device.uuid : ${activeDevice.uuid.toString()}");
+    Future<void> _discoverServices() async {        
         services = ObservableList.of(await activeDevice.discoverServices());
         print("services - - - - - - - - - - - - - - - - - - $services");
         // checking each services provided by device
@@ -163,21 +162,22 @@ abstract class _BluetoothStore with Store {
     Future<void> connectDevice(FreeRTOSDevice device, BuildContext context) async {
         try {
             if(device != null) {
-                isConnecting = true;
                 activeDevice = device;
                 activeDevice.connect();
-                _deviceStateSubscription = activeDevice.observeState().listen((value) async {
-                    print("state $value");
+                isConnecting = true;
+                _deviceStateSubscription = activeDevice.observeState().listen((value) async {                    
                     if (value == FreeRTOSDeviceState.CONNECTED) {
                         // TODO: check if this tiemout is still necessary?
                         // Need to wait for 3 seconds due to Amazon GATT server
                         // demo requiring extra steps to get fully connected
                         // as it required a user verification
                         // Timer(Duration(seconds: 3), () async => await _discoverServices());
-                        await _discoverServices();
+                        
+                        // TODO: discoverServices is pending
+                        // await _discoverServices();
                         isConnecting = false;
                         Navigator.pushNamed(context, "/bluetoothDevice");
-                    }
+                    }         
                 });                   
             }
             } catch (e) {
@@ -187,13 +187,16 @@ abstract class _BluetoothStore with Store {
     }
 
     @action
-    disconnect() {        
-        _scanforDevicesSubscription?.cancel();
-        _scanforDevicesSubscription = null;
-        _deviceStateSubscription?.cancel();
-        _deviceStateSubscription = null;
+    disconnect() {
+        devicesNearby.clear();
+        services.clear();
         activeDevice.disconnect();
         activeDevice = null;
+        _scanforDevicesSubscription.cancel();
+        _scanforDevicesSubscription = null;    
+        _deviceStateSubscription.cancel();
+        _deviceStateSubscription = null;    
+        
     }
 
     // AmazonFreeRTOS GATT Server Demo
