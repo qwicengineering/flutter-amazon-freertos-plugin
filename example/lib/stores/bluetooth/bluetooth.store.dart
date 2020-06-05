@@ -162,9 +162,10 @@ abstract class _BluetoothStore with Store {
 
     Future<void> connectDevice(FreeRTOSDevice device, BuildContext context) async {
         try {
-            if(device != null) {                
+            if(device != null) {
+                activeDevice = device;
+                await activeDevice.connect();
                 isConnecting = true;
-                await device.connect();
                 _deviceStateSubscription = activeDevice.observeState().listen((value) async {                    
                     if (value == FreeRTOSDeviceState.CONNECTED) {
                         // TODO: check if this tiemout is still necessary?
@@ -175,7 +176,6 @@ abstract class _BluetoothStore with Store {
                         
                         // TODO: discoverServices is pending
                         // await _discoverServices();
-                        activeDevice = device;
                         Navigator.pushNamed(context, "/bluetoothDevice");
                     }
                     if(value != FreeRTOSDeviceState.CONNECTING) {
