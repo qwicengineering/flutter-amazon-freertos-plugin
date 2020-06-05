@@ -124,10 +124,8 @@ class FreeRTOSBluetooth(context: Context) {
         override fun onConnectionStateChange(gatt: BluetoothGatt, status: Int, newState: Int) {
             if (newState == BluetoothProfile.STATE_CONNECTED) {
                 Log.i(TAG, "Connected to GATT client. Attempting to start service discovery");
-                // TODO: check what is the best value to send here
-                // TODO: split discoverServices in a separate method
+                // TODO: check what is the best value to send here and if still necessary
                 // gatt.requestMtu(510);
-//                gatt.discoverServices();
             } else if (newState == BluetoothProfile.STATE_DISCONNECTED) {
                 Log.i(TAG, "Disconnected from GATT client");
             }
