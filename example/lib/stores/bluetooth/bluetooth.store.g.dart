@@ -84,6 +84,23 @@ mixin _$BluetoothStore on _BluetoothStore, Store {
     }, _$servicesAtom, name: '${_$servicesAtom.name}_set');
   }
 
+  final _$isConnectingAtom = Atom(name: '_BluetoothStore.isConnecting');
+
+  @override
+  bool get isConnecting {
+    _$isConnectingAtom.context.enforceReadPolicy(_$isConnectingAtom);
+    _$isConnectingAtom.reportObserved();
+    return super.isConnecting;
+  }
+
+  @override
+  set isConnecting(bool value) {
+    _$isConnectingAtom.context.conditionallyRunInAction(() {
+      super.isConnecting = value;
+      _$isConnectingAtom.reportChanged();
+    }, _$isConnectingAtom, name: '${_$isConnectingAtom.name}_set');
+  }
+
   final _$initializeAsyncAction = AsyncAction('initialize');
 
   @override
@@ -131,7 +148,7 @@ mixin _$BluetoothStore on _BluetoothStore, Store {
   @override
   String toString() {
     final string =
-        'bluetoothState: ${bluetoothState.toString()},devicesNearby: ${devicesNearby.toString()},activeDevice: ${activeDevice.toString()},services: ${services.toString()},isBluetoothSupportedAndOn: ${isBluetoothSupportedAndOn.toString()}';
+        'bluetoothState: ${bluetoothState.toString()},devicesNearby: ${devicesNearby.toString()},activeDevice: ${activeDevice.toString()},services: ${services.toString()},isConnecting: ${isConnecting.toString()},isBluetoothSupportedAndOn: ${isBluetoothSupportedAndOn.toString()}';
     return '{$string}';
   }
 }

@@ -54,6 +54,13 @@ class BluetoothDevicesScreen extends StatelessWidget {
             );
         }
 
+        Widget _buildProgressBarTile() {
+            return LinearProgressIndicator(
+                backgroundColor: Colors.lightBlue,
+                valueColor: AlwaysStoppedAnimation<Color>(Colors.blue),
+            );
+        }
+
         return Observer(name: "BluetoothDevices",
             builder: (_) => Scaffold(
                 appBar: AppBar(
@@ -70,6 +77,10 @@ class BluetoothDevicesScreen extends StatelessWidget {
                     padding: EdgeInsets.all(10),
                     child: Column(
                         children: <Widget>[
+                            Padding(
+                                padding: const EdgeInsets.only(bottom: 8.0),
+                                child: (bluetoothStore.isConnecting) ? _buildProgressBarTile() : Container(height: 6,),
+                            ),
                             Text("Bluetooth state: ${bluetoothStore.bluetoothState}\n"),
                             Row(
                                 children: <Widget>[

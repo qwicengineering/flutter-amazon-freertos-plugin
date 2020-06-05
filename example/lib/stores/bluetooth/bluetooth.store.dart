@@ -28,6 +28,9 @@ abstract class _BluetoothStore with Store {
     @observable
     ObservableList<BluetoothService> services = ObservableList.of([]);
 
+    @observable
+    bool isConnecting = false;
+
     @action
     Future<void> initialize() async {
         try {
@@ -149,7 +152,7 @@ abstract class _BluetoothStore with Store {
     // TODO: Services is empty [] sometimes
     Future<void> _discoverServices() async {
         print("*** device.uuid : ${activeDevice.uuid.toString()}");
-        services = await activeDevice.discoverServices();
+        services = ObservableList.of(await activeDevice.discoverServices());
         print("services - - - - - - - - - - - - - - - - - - $services");
         // checking each services provided by device
         services.forEach((service) {    
@@ -160,6 +163,7 @@ abstract class _BluetoothStore with Store {
     Future<void> connectDevice(FreeRTOSDevice device, BuildContext context) async {
         try {
             if(device != null) {
+                isConnecting = true;
                 activeDevice = device;
                 activeDevice.connect();
                 _deviceStateSubscription = activeDevice.observeState().listen((value) async {
@@ -171,11 +175,13 @@ abstract class _BluetoothStore with Store {
                         // as it required a user verification
                         // Timer(Duration(seconds: 3), () async => await _discoverServices());
                         await _discoverServices();
+                        isConnecting = false;
                         Navigator.pushNamed(context, "/bluetoothDevice");
                     }
                 });                   
             }
             } catch (e) {
+                isConnecting = false;
                 print("Unable to connect to device: $e");
             }
     }

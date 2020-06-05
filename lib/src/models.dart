@@ -47,7 +47,7 @@ class FreeRTOSDevice {
     // Will not be able to retreive custom services on iOS
     // until periperal.discoverServices() is called again
     // on device connect. 
-    Future<List> discoverServices() async {
+    Future<List<BluetoothService>> discoverServices() async {
         // invoke discoverServices();
         await _channel.invokeListMethod("discoverServices", { "deviceUUID": uuid });
         // retrieve them and return them
