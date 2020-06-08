@@ -42,10 +42,8 @@ class BluetoothDevicesScreen extends StatelessWidget {
                 onTap: () async {
                     var isConnected = await device.isConnected;
                     if (!isConnected) {
-                        await bluetoothStore.connectDevice(device);
-                    }
-
-                    Navigator.pushNamed(context, "/bluetoothDevice");
+                        bluetoothStore.connectDevice(device, context);
+                    }                    
                 },
                 splashColor: Colors.amberAccent,
                 child: Container(
@@ -53,6 +51,13 @@ class BluetoothDevicesScreen extends StatelessWidget {
                     color: Colors.blue,
                     child: Center(child: Text("${device.name}"))
                 )
+            );
+        }
+
+        Widget _buildProgressBarTile() {
+            return LinearProgressIndicator(
+                backgroundColor: Colors.lightBlue,
+                valueColor: AlwaysStoppedAnimation<Color>(Colors.blue),
             );
         }
 
@@ -72,6 +77,10 @@ class BluetoothDevicesScreen extends StatelessWidget {
                     padding: EdgeInsets.all(10),
                     child: Column(
                         children: <Widget>[
+                            Padding(
+                                padding: const EdgeInsets.only(bottom: 8.0),
+                                child: (bluetoothStore.isConnecting) ? _buildProgressBarTile() : Container(height: 6,),
+                            ),
                             Text("Bluetooth state: ${bluetoothStore.bluetoothState}\n"),
                             Row(
                                 children: <Widget>[

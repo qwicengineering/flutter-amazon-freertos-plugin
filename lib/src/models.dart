@@ -10,10 +10,10 @@ enum BluetoothState {
 }
 
 enum FreeRTOSDeviceState {
-    CONNECTED,
+    CONNECTED, // on Android this means Bonded and Connected
     CONNECTING,
     DISCONNECTED,
-    DISCONNECTING
+    DISCONNECTING,
 }
 
 class FreeRTOSDevice {
@@ -36,18 +36,26 @@ class FreeRTOSDevice {
             brokerEndpoint = jsonData["brokerEndpoint"],
             mtu = jsonData["mtu"];
 
+    // It need to throw a new exception to be catched where this method is called from
     Future<void> connect() async {
-        await _channel.invokeMethod("connectToDeviceId", { "deviceUUID": uuid });
+        try {            
+            await _channel.invokeMethod("connectToDeviceId", { "deviceUUID": uuid });
+        } on PlatformException catch(e) {
+            throw new Exception(e);
+        }
     }
 
     Future<void> disconnect() async {
         await _channel.invokeMethod("disconnectFromDeviceId", { "deviceUUID": uuid });
     }
-
+    
     // Will not be able to retreive custom services on iOS
     // until periperal.discoverServices() is called again
     // on device connect. 
-    Future<List> discoverServices() async {
+    Future<List<BluetoothService>> discoverServices() async {
+        // invoke discoverServices();
+        await _channel.invokeListMethod("discoverServices", { "deviceUUID": uuid });
+        // retrieve them and return them
         var services = await _channel.invokeListMethod("listServicesForDeviceId", { "deviceUUID": uuid });
         return List<BluetoothService>.from(
             services.map((service){

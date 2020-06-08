@@ -15,14 +15,13 @@ import io.flutter.plugin.common.MethodChannel.Result
 import io.flutter.plugin.common.PluginRegistry.Registrar
 
 /** FlutterAmazonFreeRTOSPlugin */
-
 private fun pluginInitializer(context: Context, messenger: BinaryMessenger) {
     val plugin = FreeRTOSBluetooth(context)
     val channel = createPluginScaffold(
         messenger,
         "nl.qwic.plugins.flutter_amazon_freertos_plugin",
         plugin
-    )
+    );
     val mReceiver: BroadcastReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
             val action = intent.action
@@ -37,7 +36,6 @@ private fun pluginInitializer(context: Context, messenger: BinaryMessenger) {
 }
 
 public class FlutterAmazonFreeRTOSPlugin: FlutterPlugin, MethodCallHandler {
-
     override fun onAttachedToEngine(@NonNull flutterPluginBinding: FlutterPlugin.FlutterPluginBinding) {
         pluginInitializer(flutterPluginBinding.applicationContext, flutterPluginBinding.binaryMessenger);
     }

@@ -1,6 +1,8 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import "package:mobx/mobx.dart";
 import "package:flutter_amazon_freertos_plugin/flutter_amazon_freertos_plugin.dart";
 import 'package:permission_handler/permission_handler.dart';
@@ -13,6 +15,7 @@ class BluetoothStore = _BluetoothStore with _$BluetoothStore;
 abstract class _BluetoothStore with Store {
     FlutterAmazonFreeRTOSPlugin amazonFreeRTOSPlugin = FlutterAmazonFreeRTOSPlugin.instance;
     StreamSubscription _scanforDevicesSubscription;
+    StreamSubscription _deviceStateSubscription;
 
     @observable
     BluetoothState bluetoothState = BluetoothState.UNKNOWN;
@@ -22,6 +25,12 @@ abstract class _BluetoothStore with Store {
 
     @observable
     FreeRTOSDevice activeDevice;
+
+    @observable
+    ObservableList<BluetoothService> services = ObservableList.of([]);
+
+    @observable
+    bool isConnecting = false;
 
     @action
     Future<void> initialize() async {
@@ -68,6 +77,7 @@ abstract class _BluetoothStore with Store {
 
     Future<void> startScanning() async {
         try {
+            // TODO: Permission validation should be in plugin side?
             // Location permission needed on Android to scan devices
             // (Requesting Runtime Permissions needed for Android SDK 23 and higher)
             // AWSfreeRTOS is using Android SDK 23
@@ -94,7 +104,7 @@ abstract class _BluetoothStore with Store {
                 Platform.isIOS || 
                 (Platform.isAndroid && status == PermissionStatus.granted)
             ) { 
-                print("Start scanning for nearby BLE devices");      
+                print("Start scanning for nearby BLE devices");
                 devicesNearby.clear();
                 // If timeout is not sent, then scanning won't stop until we call amazonFreeRTOSPlugin.stopScanForDevices()
                 _scanforDevicesSubscription = amazonFreeRTOSPlugin.startScanForDevices(scanDuration: 3000).listen((scanResult) {                    
@@ -140,13 +150,56 @@ abstract class _BluetoothStore with Store {
         }
     }
 
-    Future<void> connectDevice(FreeRTOSDevice device) async {
+    // TODO: Services is empty [] sometimes
+    Future<void> _discoverServices() async {        
+        services = ObservableList.of(await activeDevice.discoverServices());
+        print("services - - - - - - - - - - - - - - - - - - $services");
+        // checking each services provided by device
+        services.forEach((service) {    
+            print("service $service");
+        });
+    }
+
+    Future<void> connectDevice(FreeRTOSDevice device, BuildContext context) async {
         try {
-            device.connect();
-            activeDevice = device;
+            if(device != null) {
+                activeDevice = device;
+                await activeDevice.connect();
+                isConnecting = true;
+                _deviceStateSubscription = activeDevice.observeState().listen((value) async {                    
+                    if (value == FreeRTOSDeviceState.CONNECTED) {
+                        // TODO: check if this tiemout is still necessary?
+                        // Need to wait for 3 seconds due to Amazon GATT server
+                        // demo requiring extra steps to get fully connected
+                        // as it required a user verification
+                        // Timer(Duration(seconds: 3), () async => await _discoverServices());
+                        
+                        // TODO: discoverServices is pending
+                        // await _discoverServices();
+                        Navigator.pushNamed(context, "/bluetoothDevice");
+                    }
+                    if(value != FreeRTOSDeviceState.CONNECTING) {
+                        isConnecting = false;
+                    }
+                });                  
+            }            
         } catch (e) {
+            isConnecting = false;
             print("Unable to connect to device: $e");
         }
+    }
+
+    @action
+    disconnect() {
+        devicesNearby.clear();
+        services.clear();
+        activeDevice.disconnect();
+        activeDevice = null;
+        _scanforDevicesSubscription.cancel();
+        _scanforDevicesSubscription = null;    
+        _deviceStateSubscription.cancel();
+        _deviceStateSubscription = null;    
+        
     }
 
     // AmazonFreeRTOS GATT Server Demo
