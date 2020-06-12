@@ -2,23 +2,25 @@ import Flutter
 import UIKit
 import plugin_scaffold
 import CoreBluetooth
+import AmazonFreeRTOS
 
 
 let pkgName = "nl.qwic.plugins.flutter_amazon_freertos_plugin"
 
 public class SwiftFlutterAmazonFreeRTOSPlugin: NSObject, FlutterPlugin {
     public static func register(with registrar: FlutterPluginRegistrar) {
+        let amazonFreeRTOSManager = AmazonFreeRTOSManager.shared
+        let scanMethods = FreeRTOSBluetoothScan(amazonFreeRTOSManager)
         let plugin = FreeRTOSBluetooth()
         let channel = createPluginScaffold(
             messenger: registrar.messenger(),
             channelName: pkgName,
             methodMap: [
                 "bluetoothState": plugin.bluetoothState,
-                "startScanForDevices": plugin.startScanForDevices,
-                "stopScanForDevices": plugin.stopScanForDevices,
-                "startScanForDevicesOnListen": plugin.startScanForDevicesOnListen,
-                "startScanForDevicesOnCancel": plugin.startScanForDevicesOnCancel,
-                "rescanForDevices": plugin.rescanForDevices,
+                "stopScanForDevices": scanMethods.stopScanForDevices,
+                "startScanForDevicesOnListen": scanMethods.startScanForDevicesOnListen,
+                "startScanForDevicesOnCancel": scanMethods.startScanForDevicesOnCancel,
+                "rescanForDevices": scanMethods.rescanForDevices,
                 "connectToDeviceId": plugin.connectToDeviceId,
                 "disconnectFromDeviceId": plugin.disconnectFromDeviceId,
                 "deviceState": plugin.deviceState,
