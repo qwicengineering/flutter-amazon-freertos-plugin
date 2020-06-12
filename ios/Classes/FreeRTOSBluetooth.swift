@@ -24,6 +24,7 @@ class FreeRTOSBluetooth {
             central.scanForPeripherals(withServices: advertisingServiceUUIDs, options: nil)
             debugPrint("[FreeRTOSBluetooth] startScanForDevices")
         }
+        result(nil)
     }
 
     // TODO: Do we need to look for exceptions?
@@ -92,6 +93,7 @@ class FreeRTOSBluetooth {
             }
             central.scanForPeripherals(withServices: advertisingServiceUUIDs, options: nil)
         }
+        result(nil)
     }
 
     // Discovered devices are usually cached. If there is a new device,
@@ -116,6 +118,7 @@ class FreeRTOSBluetooth {
             debugPrint("[FreeRTOSBluetooth] connectToDeviceId deviceUUID: \(deviceUUID)")
             device.connect(reconnect: reconnect, credentialsProvider: AWSMobileClient.default())
         }
+        result(nil)
     }
 
     func disconnectFromDeviceId(call: FlutterMethodCall, result: @escaping FlutterResult) {
@@ -127,6 +130,7 @@ class FreeRTOSBluetooth {
             debugPrint("[FreeRTOSBluetooth] disconnectFromDeviceId deviceUUID: \(deviceUUID)")
             device.disconnect()
         }
+        result(nil)
     }
 
     func deviceState(call: FlutterMethodCall, result: @escaping FlutterResult) {
@@ -135,6 +139,7 @@ class FreeRTOSBluetooth {
 
         guard let device = getDevice(uuidString: deviceUUIDString) else { return }
         result(dumpDeviceState(device.peripheral.state))
+        return
     }
 
     func deviceStateOnListen(id: Int, args: Any?, sink: @escaping FlutterEventSink) {
@@ -161,6 +166,7 @@ class FreeRTOSBluetooth {
         }
 
         notificationObservers[id] = [connectObeserver, disconnectObserver]
+        return
     }
 
     func deviceStateOnCancel(id: Int, args: Any?) {
@@ -183,6 +189,10 @@ class FreeRTOSBluetooth {
         }
         debugPrint("[FreeRTOSBlueTooth] listServicesForDevice deviceUUID: \(device.peripheral.identifier.uuidString)")
         result(services)
+    }
+
+    func discoverServices(call: FlutterMethodCall, result: @escaping FlutterResult) {
+        result(nil)
     }
 
     func readDescriptor(call: FlutterMethodCall, result: @escaping FlutterResult) {
@@ -211,6 +221,7 @@ class FreeRTOSBluetooth {
         // Harcoding .withResponse for now.
         // TODO: Retreive .withResponse as from call.arguments
         device.peripheral.writeValue(value.data, for: characteristic, type: .withResponse)
+        result(nil)
     }
 
     func setNotification(call: FlutterMethodCall, result: @escaping FlutterResult) {

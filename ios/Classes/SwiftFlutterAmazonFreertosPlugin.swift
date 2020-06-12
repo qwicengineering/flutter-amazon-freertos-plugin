@@ -24,6 +24,7 @@ public class SwiftFlutterAmazonFreeRTOSPlugin: NSObject, FlutterPlugin {
                 "deviceState": plugin.deviceState,
                 "deviceStateOnListen": plugin.deviceStateOnListen,
                 "deviceStateOnCancel": plugin.deviceStateOnCancel,
+                "discoverServices": plugin.discoverServices,
                 "listDiscoveredDevices": plugin.listDiscoveredDevices,
                 "listServicesForDeviceId": plugin.listServicesForDevice,
                 "writeDescriptor": plugin.writeDescriptor,
@@ -33,13 +34,13 @@ public class SwiftFlutterAmazonFreeRTOSPlugin: NSObject, FlutterPlugin {
                 "setMtu": plugin.setMtu
             ]
         )
-        
+
         // FreeRTOS BLE Central Manager didUpdateState
         NotificationCenter.default.addObserver(forName: .afrCentralManagerDidUpdateState, object: nil, queue: nil) { notification in
             let state = dumpBluetoothState(plugin.awsFreeRTOSManager.central?.state ?? CBManagerState.unknown)
             channel.invokeMethod("bluetoothStateChangeCallback", arguments: state)
         }
-        
+
         // FreeRTOS BLE Central Manager didConnectDevice
         // Discover all custom services
         NotificationCenter.default.addObserver(forName: .afrCentralManagerDidConnectDevice, object: nil, queue: nil) { notification in
