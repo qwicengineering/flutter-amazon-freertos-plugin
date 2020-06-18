@@ -27,7 +27,9 @@ class FreeRTOSDevice {
 
     final _channel = FlutterAmazonFreeRTOSPlugin.instance.channel;
 
-    FreeRTOSDevice.fromJson(Map jsonData) 
+    Future<List<BluetoothService>> _discoveredServices;
+
+    FreeRTOSDevice.fromJson(Map jsonData)
         :   uuid = jsonData["uuid"],
             name = jsonData["name"],
             reconnect = jsonData["reconnect"] == true,
@@ -38,7 +40,7 @@ class FreeRTOSDevice {
 
     // It need to throw a new exception to be catched where this method is called from
     Future<void> connect() async {
-        try {            
+        try {
             await _channel.invokeMethod("connectToDeviceId", { "deviceUUID": uuid });
         } on PlatformException catch(e) {
             throw new Exception(e);
@@ -48,21 +50,20 @@ class FreeRTOSDevice {
     Future<void> disconnect() async {
         await _channel.invokeMethod("disconnectFromDeviceId", { "deviceUUID": uuid });
     }
-    
+
     // Will not be able to retreive custom services on iOS
     // until periperal.discoverServices() is called again
-    // on device connect. 
-    Future<List<BluetoothService>> discoverServices() async {
+    // on device connect.
+    Future<void> discoverServices({List<String> serviceUUIDS = const []}) async {
         // invoke discoverServices();
-        await _channel.invokeListMethod("discoverServices", { "deviceUUID": uuid });
         // retrieve them and return them
-        var services = await _channel.invokeListMethod("listServicesForDeviceId", { "deviceUUID": uuid });
-        return List<BluetoothService>.from(
-            services.map((service){
-                return BluetoothService.fromJson(service);
-            })
-        );
+        _discoveredServices = PluginScaffold.createStream(_channel, "discoverServices", { "deviceUUID": uuid })
+                        .map((service) => BluetoothService.fromJson(service))
+                        .toList();
+        await _channel.invokeListMethod("discoverServices", { "deviceUUID": uuid, "serviceUUIDS": serviceUUIDS });
     }
+
+    Future<List<BluetoothService>> get services async => await _discoveredServices;
 
     Future<void> discoverCharacteristics() async {
         await _channel.invokeListMethod("discoverCharactersitics");
@@ -102,7 +103,7 @@ class BluetoothCharacteristic {
 
     final _channel = FlutterAmazonFreeRTOSPlugin.instance.channel;
 
-    BluetoothCharacteristic.fromJson(Map jsonData) 
+    BluetoothCharacteristic.fromJson(Map jsonData)
         :   uuid = jsonData["uuid"],
             serviceUUID = jsonData["serviceUUID"],
             deviceUUID = jsonData["deviceUUID"],
@@ -111,8 +112,8 @@ class BluetoothCharacteristic {
             properties = BluetoothCharacteristicProperties.fromJson(jsonData["properties"]);
 
     Future<void> writeValue(Uint8List value) async {
-        await _channel.invokeMethod("writeCharacteristic", 
-            { 
+        await _channel.invokeMethod("writeCharacteristic",
+            {
                 "deviceUUID": deviceUUID,
                 "serviceUUID": serviceUUID,
                 "characteristicUUID": uuid,
@@ -122,8 +123,8 @@ class BluetoothCharacteristic {
     }
 
     Future<void> readValue() async {
-        await _channel.invokeMethod("readCharacteristic", 
-            { 
+        await _channel.invokeMethod("readCharacteristic",
+            {
                 "deviceUUID": deviceUUID,
                 "serviceUUID": serviceUUID,
                 "characteristicUUID": uuid,

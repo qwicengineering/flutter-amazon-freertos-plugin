@@ -1,7 +1,6 @@
 import UIKit
 import AmazonFreeRTOS
 import AWSMobileClient
-import AWSIoT
 import CoreBluetooth
 
 class FreeRTOSBluetooth {
@@ -82,44 +81,6 @@ class FreeRTOSBluetooth {
 
     func setMtu(call: FlutterMethodCall, result: @escaping FlutterResult) {
         result(FlutterMethodNotImplemented)
-    }
-
-    // Attaches proper policy to the Cognito on sign-in
-    // This allows user to subscribe and publish messages to IoT Core
-    // via MQTT protocol
-    // See https://github.com/aws-samples/aws-iot-chat-example/blob/master/docs/authentication.md
-    // This is used strictly for example code
-    // TODO: Create a serverless example
-    func attachPrincipalPolicy() {
-
-        AWSMobileClient.default().getIdentityId().continueWith { task -> Any? in
-
-            if let error = task.error {
-                print(error)
-                return task
-            }
-
-            guard let attachPrincipalPolicyRequest = AWSIoTAttachPrincipalPolicyRequest(), let principal = task.result else {
-                return task
-            }
-
-            attachPrincipalPolicyRequest.policyName = ""
-            attachPrincipalPolicyRequest.principal = String(principal)
-
-            let configuration = AWSServiceConfiguration(
-                region: .Unknown, credentialsProvider: AWSMobileClient.default()
-            )
-
-            AWSServiceManager.default()?.defaultServiceConfiguration = configuration
-
-            AWSIoT.default().attachPrincipalPolicy(attachPrincipalPolicyRequest, completionHandler: { error in
-                if let error = error {
-                    print(error)
-                }
-            })
-
-            return task
-        }
     }
 
     // Helper functions

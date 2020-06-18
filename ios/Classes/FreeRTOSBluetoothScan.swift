@@ -40,7 +40,6 @@ class FreeRTOSBluetoothScan: NSObject {
         if let customServiceUUIDs = map["serviceUUIDS"] as? [CBUUID] {
            advertisingServiceUUIDs += customServiceUUIDs
         }
-        debugPrint("[FreeRTOSBluetooth] startScanForDevicesOnListen id: \(id), advertisingUUIDs: \(advertisingServiceUUIDs) scanDuration:\(scanDuration) startStream")
         
         // clear existing scan and notification observers
         amazonFreeRTOSManager.central?.stopScan()
@@ -50,6 +49,7 @@ class FreeRTOSBluetoothScan: NSObject {
         _setupScanNotifications(id: id, sink: sink)
         amazonFreeRTOSManager.central?.scanForPeripherals(withServices: advertisingServiceUUIDs, options: nil)
         
+        debugPrint("[FreeRTOSBluetooth] startScanForDevicesOnListen id: \(id), advertisingUUIDs: \(advertisingServiceUUIDs) scanDuration:\(scanDuration) startStream")
         // Do not end stream if scanDuration is 0
         if scanDuration > 0 {
             DispatchQueue.main.asyncAfter(deadline: .now() + .milliseconds(scanDuration)) {
@@ -74,6 +74,7 @@ class FreeRTOSBluetoothScan: NSObject {
         central.stopScan()
         
         debugPrint("[FreeRTOSBluetoothScan] stopScanForDevices stop scan")
+        result(nil)
     }
     
     func rescanForDevices(call: FlutterMethodCall, result: @escaping FlutterResult) {
