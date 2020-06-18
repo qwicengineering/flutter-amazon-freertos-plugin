@@ -14,8 +14,9 @@ class BluetoothDeviceScreen extends StatelessWidget {
         FreeRTOSDevice device = bluetoothStore.activeDevice;
         List<BluetoothService> services = bluetoothStore.services;
 
-        void _discoverServices() {            
-            print(services);
+
+        void _getServices() async {
+            await bluetoothStore.getServices();
         }
 
         void _writeToCharacteristic(int value) {
@@ -51,7 +52,7 @@ class BluetoothDeviceScreen extends StatelessWidget {
             bluetoothStore.disconnect();
             Navigator.popAndPushNamed(context, "/bluetoothDevices");
         }
-        
+
         return Observer(name: "BluetoothDevice",
             builder: (_) => Scaffold(
                 appBar: AppBar(
@@ -60,28 +61,38 @@ class BluetoothDeviceScreen extends StatelessWidget {
                 body: Container(
                     padding: EdgeInsets.all(10),
                     child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.center,
                         children: <Widget>[
                             Text("uuid: ${device.uuid}"),
                             Text("rssi: ${device.rssi}"),
                             Text("mtu: ${device.mtu}"),
                             Text("reconnect: ${device.reconnect}"),
-                            Column(
-                                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                                children: <Widget>[
-                                    OutlineButton(child: Text("Start"), onPressed: () => _writeToCharacteristic(0),),
-                                    OutlineButton(child: Text("Stop"), onPressed: () => _writeToCharacteristic(1),),
-                                    OutlineButton(child: Text("Reset"), onPressed: () => _writeToCharacteristic(2),),
-                                    OutlineButton(child: Text("Read"), onPressed: _readCharacteristic,)
-                                ],
-                            ),
                             Row(
                                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                                 children: <Widget>[
-                                    OutlineButton(child: Text("services"), onPressed: _discoverServices,),
+                                    OutlineButton(child: Text("services"), onPressed: _getServices,),
                                     OutlineButton(child: Text("disconnect"), onPressed: _disconnect)
                                 ],
-                            )
+                            ),
+                            Expanded(
+                                flex: 1,
+                                child: Container(
+                                    child: ListView.builder(
+                                            itemCount: bluetoothStore.services.length,
+                                            itemBuilder: (context, index) {
+                                                return Container(
+                                                        height: 50,
+                                                        child: Column(
+                                                            crossAxisAlignment: CrossAxisAlignment.start,
+                                                            children: <Widget>[
+                                                                Text("${bluetoothStore.services[index].uuid}"),
+                                                                Text("isPrimary: ${bluetoothStore.services[index].isPrimary}")
+                                                            ]
+                                                        )
+                                                    );
+                                            }
+                                    )
+                                ),
+                            ),
                         ],
                     )
                 ),

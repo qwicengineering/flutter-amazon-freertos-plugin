@@ -92,7 +92,7 @@ abstract class _BluetoothStore with Store {
                     // The user opted to never again see the permission request dialog for this
                     // app. The only way to change the permission's status now is to let the
                     // user manually enable it in the system settings.
-                    openAppSettings(); 
+                    openAppSettings();
                     return;
                 }
                 if(status != PermissionStatus.granted) {
@@ -101,20 +101,20 @@ abstract class _BluetoothStore with Store {
                 }
             }
             if(
-                Platform.isIOS || 
+                Platform.isIOS ||
                 (Platform.isAndroid && status == PermissionStatus.granted)
-            ) { 
+            ) {
                 print("Start scanning for nearby BLE devices");
                 devicesNearby.clear();
                 // If timeout is not sent, then scanning won't stop until we call amazonFreeRTOSPlugin.stopScanForDevices()
-                _scanforDevicesSubscription = amazonFreeRTOSPlugin.startScanForDevices(scanDuration: 3000).listen((scanResult) {                    
+                _scanforDevicesSubscription = amazonFreeRTOSPlugin.startScanForDevices(scanDuration: 3000).listen((scanResult) {
                     devicesNearby.add(scanResult);
                 }, onDone: () {
                     print("----------- scan done ----------");
-                }); 
+                });
 
                 // Other way to do it:
-                // await for (final scanResult in amazonFreeRTOSPlugin.startScanForDevices()) {}                            
+                // await for (final scanResult in amazonFreeRTOSPlugin.startScanForDevices()) {}
             }
         } catch (e) {
             print("Error: Failed to start scan startScanning()");
@@ -136,10 +136,10 @@ abstract class _BluetoothStore with Store {
     }
 
     Future<void> rescan() async {
-        try {            
+        try {
             devicesNearby.clear();
             // If timeout is not sent, then scanning won't stop until we call amazonFreeRTOSPlugin.stopScanForDevices()
-            _scanforDevicesSubscription = amazonFreeRTOSPlugin.rescanForDevices(scanDuration: 3000).listen((scanResult) {                    
+            _scanforDevicesSubscription = amazonFreeRTOSPlugin.rescanForDevices(scanDuration: 3000).listen((scanResult) {
                 devicesNearby.add(scanResult);
             }, onDone: () {
                 print("----------- rescan done ----------");
@@ -150,41 +150,31 @@ abstract class _BluetoothStore with Store {
         }
     }
 
-    // TODO: Services is empty [] sometimes
-    Future<void> _discoverServices() async {        
-        services = ObservableList.of(await activeDevice.discoverServices());
-        print("services - - - - - - - - - - - - - - - - - - $services");
-        // checking each services provided by device
-        services.forEach((service) {    
-            print("service $service");
-        });
+    Future<void> getServices() async {
+        // await activeDevice.discoverServices();
+        services = ObservableList.of(await activeDevice.services);
     }
 
     Future<void> connectDevice(FreeRTOSDevice device, BuildContext context) async {
         try {
             if(device != null) {
-                activeDevice = device;
-                await activeDevice.connect();
+                await device.connect();
                 isConnecting = true;
-                _deviceStateSubscription = activeDevice.observeState().listen((value) async {                    
+                _deviceStateSubscription = device.observeState().listen((value) async {
                     if (value == FreeRTOSDeviceState.CONNECTED) {
-                        // TODO: check if this tiemout is still necessary?
-                        // Need to wait for 3 seconds due to Amazon GATT server
-                        // demo requiring extra steps to get fully connected
-                        // as it required a user verification
-                        // Timer(Duration(seconds: 3), () async => await _discoverServices());
-                        
-                        // TODO: discoverServices is pending
-                        // await _discoverServices();
-                        Navigator.pushNamed(context, "/bluetoothDevice");
-                    }
-                    if(value != FreeRTOSDeviceState.CONNECTING) {
                         isConnecting = false;
+                        activeDevice = device;
+                        await activeDevice.discoverServices();
+                        Navigator.pushNamed(context, "/bluetoothDevice");
+                    } else if (value == FreeRTOSDeviceState.DISCONNECTED) {
+                        print("device disconnected");
+                        disconnect();
                     }
-                });                  
-            }            
+                });
+            }
         } catch (e) {
             isConnecting = false;
+            activeDevice = null;
             print("Unable to connect to device: $e");
         }
     }
@@ -196,10 +186,11 @@ abstract class _BluetoothStore with Store {
         activeDevice.disconnect();
         activeDevice = null;
         _scanforDevicesSubscription.cancel();
-        _scanforDevicesSubscription = null;    
+        _scanforDevicesSubscription = null;
         _deviceStateSubscription.cancel();
-        _deviceStateSubscription = null;    
-        
+        _deviceStateSubscription = null;
+        isConnecting = false;
+
     }
 
     // AmazonFreeRTOS GATT Server Demo
@@ -207,6 +198,7 @@ abstract class _BluetoothStore with Store {
     String get demoService => "c6f2d9e3-49e7-4125-9014-bfc6d669ff00";
     String get demoRead => "c6f2d9e3-49e7-4125-9014-bfc6d669ff01";
     String get demoWrite => "c6f2d9e3-49e7-4125-9014-bfc6d669ff02";
+    String get dashboardService => "7A021100-D49B-4013-8041-F5A162D7E71C";
 
     @computed
     bool get isBluetoothSupportedAndOn => bluetoothState == BluetoothState.POWERED_ON;
