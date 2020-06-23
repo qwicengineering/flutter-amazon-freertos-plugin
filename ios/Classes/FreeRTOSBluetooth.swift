@@ -3,43 +3,18 @@ import AmazonFreeRTOS
 import AWSMobileClient
 import CoreBluetooth
 
-class FreeRTOSBluetooth {
-    let awsFreeRTOSManager = AmazonFreeRTOSManager.shared
+class FreeRTOSBluetooth: NSObject {
+    let amazonFreeRTOSManager: AmazonFreeRTOSManager
     var notificationObservers = [Int: [NSObjectProtocol]]()
+    
+    init(_ amazonFreeRTOSManager: AmazonFreeRTOSManager) {
+        self.amazonFreeRTOSManager = amazonFreeRTOSManager
+        super.init()
+    }
 
     func bluetoothState(call: FlutterMethodCall, result: @escaping FlutterResult) {
-        let state = dumpBluetoothState(awsFreeRTOSManager.central?.state ?? CBManagerState.unknown)
+        let state = dumpBluetoothState(amazonFreeRTOSManager.central?.state ?? CBManagerState.unknown)
         result(state)
-    }
-
-    // Discovered devices are usually cached. If there is a new device,
-    // it is added to the awsFreeRTOSManager.devices list.
-    // However, a device is not removed automatically.
-    // Use rescanForDevices() to reset the awsFreeRTOSManager.devices list
-    func listDiscoveredDevices(call: FlutterMethodCall, result: @escaping FlutterResult) {
-        var devices: [Any] = []
-        for (_, value) in awsFreeRTOSManager.devices {
-            devices.append(dumpFreeRTOSDeviceInfo(value))
-        }
-        result(devices)
-    }
-
-    func listServicesForDevice(call: FlutterMethodCall, result: @escaping FlutterResult) {
-        guard let args = call.arguments as? [String: Any?] else { return }
-
-        let deviceUUIDString = args["deviceUUID"] as! String
-        guard let device = getDevice(uuidString: deviceUUIDString) else { return }
-
-        var services: [Any] = []
-        for service in device.peripheral.services ?? [] {
-            services.append(dumpFreeRTOSDeviceServiceInfo(service))
-        }
-        debugPrint("[FreeRTOSBlueTooth] listServicesForDevice deviceUUID: \(device.peripheral.identifier.uuidString)")
-        result(services)
-    }
-
-    func discoverServices(call: FlutterMethodCall, result: @escaping FlutterResult) {
-        result(nil)
     }
 
     func readDescriptor(call: FlutterMethodCall, result: @escaping FlutterResult) {
@@ -87,7 +62,7 @@ class FreeRTOSBluetooth {
 
     func getDevice(uuidString: String) -> AmazonFreeRTOSDevice? {
         guard let deviceUUID = UUID(uuidString: uuidString),
-            let device = awsFreeRTOSManager.devices[deviceUUID]
+            let device = amazonFreeRTOSManager.devices[deviceUUID]
             else { return nil }
 
         return device

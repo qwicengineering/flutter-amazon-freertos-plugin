@@ -80,7 +80,8 @@ class FreeRTOSBluetoothConnect: NSObject {
         }
 
         // TODO: Invoke attachPrincipalPolicy using channel method
-        // _attachPrincipalPolicy()
+        _attachPrincipalPolicy()
+        
         device.connect(reconnect: reconnect, credentialsProvider: AWSMobileClient.default())
         result(nil)
     }
@@ -125,27 +126,55 @@ class FreeRTOSBluetoothConnect: NSObject {
     }
 
     func discoverServicesOnListen(id: Int, args: Any?, sink: @escaping FlutterEventSink) {
-        debugPrint("[FreeRTOSBluetoothConnect] discoverServicesOnListen id: \(id)")
-
+        let map = args as! [String: Any?]
+        let customServiceUUIDs = map["serviceUUIDS"] as? [String] ?? []
+        let customServices: [CBUUID] = customServiceUUIDs.map { CBUUID(string: "\($0)") }
+        
+        var discoveredCharacteristicsForService = [CBUUID: Bool]()
+        
+        
         let discoverServicesObserver = NotificationCenter.default.addObserver(forName: .afrPeripheralDidDiscoverServices, object: nil, queue: nil) {
             notification in
             let device = notification.userInfo?["peripheral"] as! CBPeripheral
 
             for service in device.services ?? [] {
-                let response = dumpFreeRTOSDeviceServiceInfo(service)
+                if (!customServices.isEmpty && customServices.filter { $0.uuidString == service.uuid.uuidString }.isEmpty) {
+                    // debugPrint("[FreeRTOSBluetoothConnect] filter streamId: \(id), deviceUUID: \(device.identifier.uuidString), serviceUUID, \(service.uuid.uuidString)")
+                    continue
+                }
+
                 debugPrint("[FreeRTOSBluetoothConnect] discoveredService deviceUUID: \(device.identifier.uuidString), serviceUUID: \(service.uuid.uuidString)")
+                discoveredCharacteristicsForService[service.uuid] = false;
                 device.discoverCharacteristics(nil, for: service)
-                sink(response)
+            }
+        }
+        
+        let discoverCharacteristicsObserver = NotificationCenter.default.addObserver(forName: .afrPeripheralDidDiscoverCharacteristics, object: nil, queue: nil) {
+            notification in
+
+            let service = notification.userInfo?["service"] as! CBService
+            if (!customServices.isEmpty && customServices.filter { $0.uuidString == service.uuid.uuidString }.isEmpty) {
+                debugPrint("[FreeRTOSBluetoothConnect] filter serviceUUID, \(service.uuid.uuidString)")
+                return
             }
 
+            debugPrint("[FreeRTOSBluetoothConnect] discoveredCharacteristics deviceUUID: \(service.peripheral.identifier.uuidString), serviceUUID: \(service.uuid.uuidString)")
+
+            discoveredCharacteristicsForService[service.uuid] = true;
+            let response = dumpFreeRTOSDeviceServiceInfo(service)
+            sink(response)
+
+            
             // End stream asynchrously since not all of the events were being
             // captured on Flutter
-            DispatchQueue.main.async {
-                sink(FlutterEndOfEventStream)
+            if discoveredCharacteristicsForService.values.allSatisfy({ $0 == true }) {
+                DispatchQueue.main.async {
+                    sink(FlutterEndOfEventStream)
+                }
             }
-
         }
-        notificationObservers[id] = [discoverServicesObserver]
+
+        notificationObservers[id] = [discoverServicesObserver, discoverCharacteristicsObserver]
     }
 
     func discoverServicesOnCancel(id: Int, args: Any?) {
