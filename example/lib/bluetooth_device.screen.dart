@@ -80,12 +80,13 @@ class BluetoothDeviceScreen extends StatelessWidget {
                                             itemCount: bluetoothStore.services.length,
                                             itemBuilder: (context, index) {
                                                 return Container(
-                                                        height: 50,
+                                                        height: 100,
                                                         child: Column(
                                                             crossAxisAlignment: CrossAxisAlignment.start,
                                                             children: <Widget>[
                                                                 Text("${bluetoothStore.services[index].uuid}"),
-                                                                Text("isPrimary: ${bluetoothStore.services[index].isPrimary}")
+                                                                Text("isPrimary: ${bluetoothStore.services[index].isPrimary}"),
+                                                                Text("charecteristicSize: ${bluetoothStore.services[index].characteristics.length}")
                                                             ]
                                                         )
                                                     );

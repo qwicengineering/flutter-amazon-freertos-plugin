@@ -164,7 +164,7 @@ abstract class _BluetoothStore with Store {
                     if (value == FreeRTOSDeviceState.CONNECTED) {
                         isConnecting = false;
                         activeDevice = device;
-                        await activeDevice.discoverServices();
+                        await activeDevice.discoverServices(serviceUUIDS: [this.dashboardService]);
                         Navigator.pushNamed(context, "/bluetoothDevice");
                     } else if (value == FreeRTOSDeviceState.DISCONNECTED) {
                         print("device disconnected");
