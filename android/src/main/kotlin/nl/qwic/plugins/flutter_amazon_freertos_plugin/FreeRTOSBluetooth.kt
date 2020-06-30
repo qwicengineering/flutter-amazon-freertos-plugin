@@ -72,7 +72,7 @@ class FreeRTOSBluetooth(context: Context) {
         }
     }
 
-    fun startScanForDevicesOnListen(id: Int, args: Any?, sink: EventChannel.EventSink   ) {
+    fun startScanForDevicesOnListen(id: Int, args: Any?, sink: EventChannel.EventSink) {
         try {
             val map = args as Map<*, *>
             val scanDuration = (map["scanDuration"] as Int).toLong()
@@ -125,7 +125,7 @@ class FreeRTOSBluetooth(context: Context) {
             if (newState == BluetoothProfile.STATE_CONNECTED) {
                 Log.i(TAG, "Connected to GATT client. Attempting to start service discovery");
                 // TODO: check what is the best value to send here and if still necessary
-                // gatt.requestMtu(510);
+//                 gatt.requestMtu(510);
             } else if (newState == BluetoothProfile.STATE_DISCONNECTED) {
                 Log.i(TAG, "Disconnected from GATT client");
             }
@@ -133,6 +133,9 @@ class FreeRTOSBluetooth(context: Context) {
 
         override fun onServicesDiscovered(gatt: BluetoothGatt, status: Int) {
             if (status == BluetoothGatt.GATT_SUCCESS) {
+                val intent = Intent();
+                intent.action = "com.qwic.DiscoverServices";
+                context.sendBroadcast(intent);
                 Log.w(TAG, "onServicesDiscovered received: $status");
             } else {
                 Log.w(TAG, "onServicesDiscovered received: $status");
@@ -189,6 +192,48 @@ class FreeRTOSBluetooth(context: Context) {
         } catch(error: Exception) {
             result.error("500", error.message, error)
         }
+    }
+
+    fun discoverServices(call: MethodCall, result: MethodChannel.Result) {
+        try {
+            val deviceUUID = call.argument<String>("deviceUUID")
+            val gattConnection = bluetoothGattConnections[deviceUUID]
+
+            if(gattConnection == null) {
+                result.error("500", "GATT Connection not found", "There's no GATT connection with the given deviceUUID param")
+                return
+            }
+
+            if(!gattConnection.discoverServices()) {
+                result.error("discover_services_error", "unknown reason", null);
+            }
+
+            result.success(null);
+        } catch(error: Exception) {
+            result.error("500", error.message, error)
+        }
+    }
+
+    fun discoverServicesOnListen(id: Int, args: Any?, sink: EventChannel.EventSink) {
+        try {
+            val mReceiver: BroadcastReceiver = object : BroadcastReceiver() {
+                override fun onReceive(context: Context, intent: Intent) {
+                    val action = intent.action
+                    if ("com.qwic.DiscoverServices" == action) {
+                        print(action);
+                        sink.success(true);
+                    }
+                }
+            }
+            val filter = IntentFilter("com.qwic.DiscoverServices");
+            context.registerReceiver(mReceiver, filter)
+        } catch(error: Exception) {
+            sink.error("500", error.message, error)
+        }
+    }
+
+    fun discoverServicesOnCancel(id: Int, args: Any?, sink: EventChannel.EventSink) {
+
     }
 
     fun deviceState(call: MethodCall, result: MethodChannel.Result) {
@@ -281,26 +326,6 @@ class FreeRTOSBluetooth(context: Context) {
             gattConnection.close();
             connectedDevices.remove(deviceUUID);
             bluetoothGattConnections.remove(deviceUUID);
-            result.success(null);
-        } catch(error: Exception) {
-            result.error("500", error.message, error)
-        }
-    }
-
-    fun discoverServices(call: MethodCall, result: MethodChannel.Result) {
-        try {
-            val deviceUUID = call.argument<String>("deviceUUID")
-            val gattConnection = bluetoothGattConnections[deviceUUID]
-
-            if(gattConnection == null) {
-                result.error("500", "GATT Connection not found", "There's no GATT connection with the given deviceUUID param")
-                return
-            }
-
-            if(!gattConnection.discoverServices()) {
-                result.error("discover_services_error", "unknown reason", null);
-            }
-
             result.success(null);
         } catch(error: Exception) {
             result.error("500", error.message, error)
