@@ -2,7 +2,6 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import "package:mobx/mobx.dart";
 import "package:flutter_amazon_freertos_plugin/flutter_amazon_freertos_plugin.dart";
 import 'package:permission_handler/permission_handler.dart';

@@ -216,23 +216,27 @@ class FreeRTOSBluetooth(context: Context) {
 
     fun discoverServicesOnListen(id: Int, args: Any?, sink: EventChannel.EventSink) {
         try {
+            val deviceUUID = args as String
+            val gattConnection = bluetoothGattConnections[deviceUUID]
             val mReceiver: BroadcastReceiver = object : BroadcastReceiver() {
                 override fun onReceive(context: Context, intent: Intent) {
                     val action = intent.action
-                    if ("com.qwic.DiscoverServices" == action) {
+                    if ("com.qwic.DiscoverServices" == action && gattConnection != null) {
                         print(action);
-                        sink.success(true);
+                        sink.success(gattConnection.services);
                     }
                 }
             }
             val filter = IntentFilter("com.qwic.DiscoverServices");
             context.registerReceiver(mReceiver, filter)
+            print("hey");
         } catch(error: Exception) {
+            print(error)
             sink.error("500", error.message, error)
         }
     }
 
-    fun discoverServicesOnCancel(id: Int, args: Any?, sink: EventChannel.EventSink) {
+    fun discoverServicesOnCancel(id: Int, args: Any?) {
 
     }
 
@@ -358,56 +362,56 @@ class FreeRTOSBluetooth(context: Context) {
         }
     }
 
-    fun writeCharacteristic(call: MethodCall, result: MethodChannel.Result) {
-        val value = call.argument<ByteArray>("value")
-        val deviceUUID = call.argument<String>("deviceUUID")
-        val serviceUUID = call.argument<String>("serviceUUID")
-        val characteristicUUID = call.argument<String>("characteristicUUID")
+   fun writeCharacteristic(call: MethodCall, result: MethodChannel.Result) {
+       val value = call.argument<ByteArray>("value")
+       val deviceUUID = call.argument<String>("deviceUUID")
+       val serviceUUID = call.argument<String>("serviceUUID")
+       val characteristicUUID = call.argument<String>("characteristicUUID")
 
-        if (deviceUUID == null) {
-            result.error("404", "deviceUUID param", "deviceUUID param should be sent")
-            return
-        }
+       if (deviceUUID == null) {
+           result.error("404", "deviceUUID param", "deviceUUID param should be sent")
+           return
+       }
 
-        if (serviceUUID == null) {
-            result.error("404", "serviceUUID param", "serviceUUID param should be sent")
-            return
-        }
+       if (serviceUUID == null) {
+           result.error("404", "serviceUUID param", "serviceUUID param should be sent")
+           return
+       }
 
-        if (characteristicUUID == null) {
-            result.error("404", "characteristicUUID param", "characteristicUUID param should be sent")
-            return
-        }
+       if (characteristicUUID == null) {
+           result.error("404", "characteristicUUID param", "characteristicUUID param should be sent")
+           return
+       }
 
-        if (value == null) {
-            result.error("404", "value param", "value param should be sent")
-            return
-        }
+       if (value == null) {
+           result.error("404", "value param", "value param should be sent")
+           return
+       }
 
-        val gattConnection = bluetoothGattConnections[deviceUUID];
+       val gattConnection = bluetoothGattConnections[deviceUUID];
 
-        if (gattConnection === null) {
-            result.error("404", "gattConnection", "gattConnection not found")
-            return
-        }
+       if (gattConnection === null) {
+           result.error("404", "gattConnection", "gattConnection not found")
+           return
+       }
 
-        val service = gattConnection.getService(UUID.fromString(serviceUUID))
+       val service = gattConnection.getService(UUID.fromString(serviceUUID))
 
-        if (service === null) {
-            result.error("404", "service: $serviceUUID", "service not found")
-            return
-        }
+       if (service === null) {
+           result.error("404", "service: $serviceUUID", "service not found")
+           return
+       }
 
-        val characteristic = service.getCharacteristic(UUID.fromString(characteristicUUID))
+       val characteristic = service.getCharacteristic(UUID.fromString(characteristicUUID))
 
-        if (characteristic === null) {
-            result.error("404", "characteristic: $characteristicUUID", "characteristic not found")
-            return
-        }
+       if (characteristic === null) {
+           result.error("404", "characteristic: $characteristicUUID", "characteristic not found")
+           return
+       }
 
-        characteristic.setValue(value);
-        gattConnection.writeCharacteristic(characteristic);
-    }
+       characteristic.setValue(value);
+       gattConnection.writeCharacteristic(characteristic);
+   }
 
     fun readCharacteristic(call: MethodCall, result: MethodChannel.Result) {
         val deviceUUID = call.argument<String>("deviceUUID")
