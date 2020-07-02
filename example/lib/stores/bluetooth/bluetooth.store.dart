@@ -149,9 +149,13 @@ abstract class _BluetoothStore with Store {
         }
     }
 
-    Future<void> getServices() async {
-        // await activeDevice.discoverServices();
-        services = ObservableList.of(await activeDevice.services);
+    Future<void> getServices() async {        
+        try {
+            services = ObservableList.of(await activeDevice.services());        
+            print("hey $services");
+        }catch (error) {
+            print('Error $error');
+        }
     }
 
     Future<void> connectDevice(FreeRTOSDevice device, BuildContext context) async {
@@ -162,14 +166,14 @@ abstract class _BluetoothStore with Store {
                 _deviceStateSubscription = device.observeState().listen((value) async {
                     if (value == FreeRTOSDeviceState.CONNECTED) {
                         isConnecting = false;
-                        activeDevice = device;
-                        await activeDevice.discoverServices(serviceUUIDS: [this.dashboardService]);
+                        activeDevice = device;                       
+                        await activeDevice.discoverServices(serviceUUIDS: [this.dashboardService]);                        
                         Navigator.pushNamed(context, "/bluetoothDevice");
                     } else if (value == FreeRTOSDeviceState.DISCONNECTED) {
                         print("device disconnected");
                         disconnect();
                     }
-                });
+                });                
             }
         } catch (e) {
             isConnecting = false;
