@@ -256,7 +256,10 @@ class FreeRTOSBluetooth(context: Context) {
                 return
             }
 
-            // Seems to be working now thanks to the sleep, removeBond and clearCache
+            // Seems to be working now thanks to the runOnUiThread, sleep, removeBond and clearCache
+            // Refs: https://stackoverflow.com/questions/20069507/gatt-callback-fails-to-register
+            // https://stackoverflow.com/questions/41434555/onservicesdiscovered-never-called-while-connecting-to-gatt-server
+
             if(!gattConnection.discoverServices()) {
                 print("error");
             }
