@@ -229,6 +229,9 @@ class FreeRTOSBluetooth(context: Context) {
                 return
             }
             runOnUiThread {
+                // **** IMPORTANT ***** //
+                // Device should be unpaired before connecting, otherwise callbacks won't work properly (we should unpair the device when disconnect)
+                // If device is still paired before connecting, then gatt.discoverServices() won't work 
                 val credentialsProvider: AWSCredentialsProvider = AWSMobileClient.getInstance()
                 connectedDevices[device.address] = awsFreeRTOSManager.connectToDevice(device, connectionStatusCallback, credentialsProvider, reconnect)
                 removeBond(device);
@@ -259,7 +262,6 @@ class FreeRTOSBluetooth(context: Context) {
             // Seems to be working now thanks to the runOnUiThread, sleep, removeBond and clearCache
             // Refs: https://stackoverflow.com/questions/20069507/gatt-callback-fails-to-register
             // https://stackoverflow.com/questions/41434555/onservicesdiscovered-never-called-while-connecting-to-gatt-server
-
             if(!gattConnection.discoverServices()) {
                 print("error");
             }
