@@ -39,7 +39,7 @@ class FreeRTOSBluetooth(context: Context) {
     private val bluetoothGattConnections: MutableMap<String, BluetoothGatt> = mutableMapOf()
     private var deviceStateReceiver: BroadcastReceiver? = null
 
-    private inline fun runOnUiThread(crossinline action: () -> Unit) {
+    inline fun runOnUiThread(crossinline action: () -> Unit) {
         val mainLooper = Looper.getMainLooper()
         if(Looper.myLooper() == mainLooper) {
             action();
@@ -169,6 +169,7 @@ class FreeRTOSBluetooth(context: Context) {
                 } catch (e: InterruptedException) {
                     e.printStackTrace()
                 }
+
             } else if (newState == BluetoothProfile.STATE_DISCONNECTED) {
                 Log.i(TAG, "Disconnected from GATT client");
                 gatt.disconnect();
@@ -382,6 +383,7 @@ class FreeRTOSBluetooth(context: Context) {
             val deviceUUID = call.argument<String>("deviceUUID")
             val connectedDevice = connectedDevices[deviceUUID]
             val gattConnection = bluetoothGattConnections[deviceUUID]
+            val bleDevice = bluetoothDevices[deviceUUID];
             if(deviceUUID == null) {
                 result.error("404", "deviceUUID param", "deviceUUID param should be sent")
                 return
@@ -392,9 +394,11 @@ class FreeRTOSBluetooth(context: Context) {
             }
             runOnUiThread {
                 awsFreeRTOSManager.disconnectFromDevice(connectedDevice);
-                removeBond(gattConnection.device);
+                removeBond(bleDevice);
+                refreshDeviceCache(gattConnection)
                 gattConnection.disconnect();
                 gattConnection.close();
+                bluetoothDevices.remove(deviceUUID);
                 connectedDevices.remove(deviceUUID);
                 bluetoothGattConnections.remove(deviceUUID);
             }
