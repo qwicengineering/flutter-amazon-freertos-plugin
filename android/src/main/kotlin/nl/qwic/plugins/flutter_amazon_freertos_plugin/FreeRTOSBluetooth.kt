@@ -73,6 +73,7 @@ class FreeRTOSBluetooth(context: Context) {
             Log.d(TAG, "removeBond() - finished method")
         } catch (e: java.lang.Exception) {
             e.printStackTrace()
+            Log.e(TAG, e.printStackTrace().toString())
         }
     }
 
@@ -91,7 +92,7 @@ class FreeRTOSBluetooth(context: Context) {
                     }
                 }
                 override fun onBleScanFailed(errorCode: Int) {
-                    print(errorCode)
+                    Log.e(TAG, errorCode.toString())
                     sink.error(errorCode.toString(), "Error in onBleScan method", "")
                 }
             }, scanDuration
@@ -113,7 +114,7 @@ class FreeRTOSBluetooth(context: Context) {
 
     private val connectionStatusCallback: BleConnectionStatusCallback = object : BleConnectionStatusCallback() {
         override fun onBleConnectionStatusChanged(connectionStatus: BleConnectionState) {
-            print("BLE connection status changed to: $connectionStatus")
+            Log.i(TAG,"BLE connection status changed to: $connectionStatus")
         }
     }
 
@@ -130,6 +131,7 @@ class FreeRTOSBluetooth(context: Context) {
                     Thread.sleep(600)
                 } catch (e: InterruptedException) {
                     e.printStackTrace()
+                    Log.e(TAG, e.printStackTrace().toString())
                 }
 
             } else if (newState == BluetoothProfile.STATE_DISCONNECTED) {
@@ -279,7 +281,7 @@ class FreeRTOSBluetooth(context: Context) {
             // Refs: https://stackoverflow.com/questions/20069507/gatt-callback-fails-to-register
             // https://stackoverflow.com/questions/41434555/onservicesdiscovered-never-called-while-connecting-to-gatt-server
             if(!gattConnection.discoverServices()) {
-                print("error");
+                Log.e(TAG, "Error: Services are not discovered")
             }
 
             result.success(null);
@@ -315,7 +317,7 @@ class FreeRTOSBluetooth(context: Context) {
             }
 
         } catch(error: Exception) {
-            print(error)
+            Log.e(TAG, error.message);
             sink.error("500", error.message, error)
         }
     }
