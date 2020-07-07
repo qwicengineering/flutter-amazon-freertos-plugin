@@ -14,7 +14,6 @@ class BluetoothDeviceScreen extends StatelessWidget {
         FreeRTOSDevice device = bluetoothStore.activeDevice;
         List<BluetoothService> services = bluetoothStore.services;
 
-
         void _getServices() async {
             await bluetoothStore.getServices();
         }

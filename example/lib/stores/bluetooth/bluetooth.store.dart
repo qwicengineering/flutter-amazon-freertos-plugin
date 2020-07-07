@@ -2,7 +2,6 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import "package:mobx/mobx.dart";
 import "package:flutter_amazon_freertos_plugin/flutter_amazon_freertos_plugin.dart";
 import 'package:permission_handler/permission_handler.dart';
@@ -62,8 +61,7 @@ abstract class _BluetoothStore with Store {
         // rescanForDevices() freshes the device list from the platform side.
         try {
             devicesNearby = ObservableList.of(await amazonFreeRTOSPlugin.discoveredDevices);
-            print("devicesNearby");
-            print(devicesNearby);
+            print("devicesNearby $devicesNearby");            
         } catch (e) {
             print("Error: Failed to retreive nearby devices");
             print(e);
@@ -150,9 +148,12 @@ abstract class _BluetoothStore with Store {
         }
     }
 
-    Future<void> getServices() async {
-        // await activeDevice.discoverServices();
-        services = ObservableList.of(await activeDevice.services);
+    Future<void> getServices() async {        
+        try {
+            services = ObservableList.of(await activeDevice.services());                    
+        }catch (error) {
+            print('Error $error');
+        }
     }
 
     Future<void> connectDevice(FreeRTOSDevice device, BuildContext context) async {
@@ -163,14 +164,14 @@ abstract class _BluetoothStore with Store {
                 _deviceStateSubscription = device.observeState().listen((value) async {
                     if (value == FreeRTOSDeviceState.CONNECTED) {
                         isConnecting = false;
-                        activeDevice = device;
-                        await activeDevice.discoverServices(serviceUUIDS: [this.dashboardService]);
+                        activeDevice = device;                       
+                        await activeDevice.discoverServices(serviceUUIDS: [this.dashboardService]);                        
                         Navigator.pushNamed(context, "/bluetoothDevice");
                     } else if (value == FreeRTOSDeviceState.DISCONNECTED) {
                         print("device disconnected");
                         disconnect();
                     }
-                });
+                });                
             }
         } catch (e) {
             isConnecting = false;
