@@ -61,8 +61,7 @@ abstract class _BluetoothStore with Store {
         // rescanForDevices() freshes the device list from the platform side.
         try {
             devicesNearby = ObservableList.of(await amazonFreeRTOSPlugin.discoveredDevices);
-            print("devicesNearby");
-            print(devicesNearby);
+            print("devicesNearby $devicesNearby");            
         } catch (e) {
             print("Error: Failed to retreive nearby devices");
             print(e);
@@ -151,8 +150,7 @@ abstract class _BluetoothStore with Store {
 
     Future<void> getServices() async {        
         try {
-            services = ObservableList.of(await activeDevice.services());        
-            print("hey $services");
+            services = ObservableList.of(await activeDevice.services());                    
         }catch (error) {
             print('Error $error');
         }
