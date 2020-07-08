@@ -3,20 +3,89 @@ import AmazonFreeRTOS
 import AWSMobileClient
 import CoreBluetooth
 
+enum FreeRTOSBluetoothError: Error {
+    case failedToConnectToDevice
+    case disconnectFromDevice
+    case deviceNotFound
+    case deviceNotConnected
+    case emptyCustomServiceArguments
+}
+/**
+ FreeRTOSBluetooth: Main class to manage device connections
+ device = AmazonFreeRTOSDevice
+ peripheral = CBPeripheral
+ */
 class FreeRTOSBluetooth: NSObject {
-    let amazonFreeRTOSManager: AmazonFreeRTOSManager
+    let amazonFreeRTOSManager: AmazonFreeRTOSManager = AmazonFreeRTOSManager.shared
     var notificationObservers = [Int: [NSObjectProtocol]]()
+    var connectedPeripherals: [UUID: CBPeripheral] = [:]
+    var central: CBCentralManager?
     
-    init(_ amazonFreeRTOSManager: AmazonFreeRTOSManager) {
-        self.amazonFreeRTOSManager = amazonFreeRTOSManager
+    override init() {
         super.init()
+        central = CBCentralManager(delegate: self, queue: nil, options: [CBCentralManagerOptionShowPowerAlertKey: true])
+        
+        NotificationCenter.default.addObserver(self, selector: #selector(deviceConnectedObserver), name: .afrCentralManagerDidConnectDevice, object: nil)
+//        NotificationCenter.default.addObserver(self, selector: #selector(deviceDisconnectedObserver), name: .afrCentralManagerDidDisconnectDevice, object: nil)
     }
 
     func bluetoothState(call: FlutterMethodCall, result: @escaping FlutterResult) {
         let state = dumpBluetoothState(amazonFreeRTOSManager.central?.state ?? CBManagerState.unknown)
         result(state)
     }
-
+    
+    func connectToDevice(call: FlutterMethodCall, result: @escaping FlutterResult) throws {
+        let map = call.arguments as! [String: Any?]
+        let uuidString = map["deviceUUID"] as! String
+        let reconnect = map["reconnect"] as? Bool ?? false
+        
+        guard let device = getAmazonFreeRTOSDevice(uuidString: uuidString) else {
+            debugPrint("[FreeRTOSBluetooth] connectToDevice cannot find device uuid: \(uuidString)")
+            throw FreeRTOSBluetoothError.deviceNotFound
+        }
+        
+        device.connect(reconnect: reconnect, credentialsProvider: AWSMobileClient.default())
+        result(nil)
+    }
+    
+    func disconnectFromDevice(call: FlutterMethodCall, result: @escaping FlutterResult) throws {
+        let map = call.arguments as! [String: Any?]
+        let uuidString = map["deviceUUID"] as! String
+        
+        guard let device = getAmazonFreeRTOSDevice(uuidString: uuidString) else {
+            debugPrint("[FreeRTOSBluetooth] disconnectFromDevice cannot find device uuid: \(uuidString)")
+            throw FreeRTOSBluetoothError.deviceNotFound
+        }
+        
+        device.disconnect()
+        
+        // Clean up local peripheral connection
+        if let peripheral = connectedPeripherals[device.peripheral.identifier], peripheral.state == .connected {
+            central?.cancelPeripheralConnection(peripheral)
+        }
+        result(nil)
+    }
+    
+    func discoverServices(call: FlutterMethodCall, result: @escaping FlutterResult) throws {
+        let map = call.arguments as! [String: Any?]
+        let deviceUUIDString = map["deviceUUID"] as! String
+        let serviceUUIDStrings = map["serviceUUIDS"] as? [String] ?? []
+        
+        guard let device = getAmazonFreeRTOSDevice(uuidString: deviceUUIDString) else {
+            debugPrint("[FreeRTOSBluetooth] disconnectFromDevice cannot find device uuid: \(deviceUUIDString)")
+            throw FreeRTOSBluetoothError.deviceNotFound
+        }
+        
+        let customServiceUUIDS: [CBUUID] = serviceUUIDStrings.map { CBUUID(string: "\($0)") }
+        guard let peripheral = connectedPeripherals[device.peripheral.identifier], peripheral.state == .connected else {
+            debugPrint("[FreeRTOSBluetooth] cannot find local peripheral reference")
+            throw FreeRTOSBluetoothError.deviceNotFound
+        }
+        
+        peripheral.discoverServices(customServiceUUIDS)
+        result(nil)
+    }
+    
     func readDescriptor(call: FlutterMethodCall, result: @escaping FlutterResult) {
         result(FlutterMethodNotImplemented)
     }
@@ -30,7 +99,7 @@ class FreeRTOSBluetooth: NSObject {
         let value = args["value"] as! FlutterStandardTypedData
 
         let deviceUUIDString = args["deviceUUID"] as! String
-        guard let device = getDevice(uuidString: deviceUUIDString) else { return }
+        guard let device = getAmazonFreeRTOSDevice(uuidString: deviceUUIDString) else { return }
 
         let serviceUUIDString = args["serviceUUID"] as! String
         let serviceUUID = CBUUID(string: serviceUUIDString)
@@ -58,14 +127,96 @@ class FreeRTOSBluetooth: NSObject {
         result(FlutterMethodNotImplemented)
     }
 
+}
+
+extension FreeRTOSBluetooth {
+    
+    @objc
+    func deviceConnectedObserver(_ notification: Notification) throws {
+        let uuid = notification.userInfo?["identifier"] as! UUID
+        guard let peripheral = central?.retrievePeripherals(withIdentifiers: [uuid]).first else {
+            throw FreeRTOSBluetoothError.deviceNotConnected
+        }
+        connectedPeripherals[peripheral.identifier] = peripheral
+        central?.connect(peripheral, options: nil)
+    }
+    
+    @objc
+    func deviceDisconnectedObserver(_ notification: Notification) throws {
+        let uuid = notification.userInfo?["identifier"] as! UUID
+        guard let peripheral = connectedPeripherals[uuid], peripheral.state == .connected else {
+            throw FreeRTOSBluetoothError.deviceNotConnected
+        }
+        central?.cancelPeripheralConnection(peripheral)
+        connectedPeripherals.removeValue(forKey: peripheral.identifier)
+    }
+    
     // Helper functions
-
-    func getDevice(uuidString: String) -> AmazonFreeRTOSDevice? {
+    func getAmazonFreeRTOSDevice(uuidString: String) -> AmazonFreeRTOSDevice? {
         guard let deviceUUID = UUID(uuidString: uuidString),
-            let device = amazonFreeRTOSManager.devices[deviceUUID]
-            else { return nil }
-
+              let device = amazonFreeRTOSManager.devices[deviceUUID]
+        else { return nil }
+        
         return device
     }
+}
 
+extension FreeRTOSBluetooth: CBCentralManagerDelegate {
+    func centralManagerDidUpdateState(_ central: CBCentralManager) {
+        debugPrint("[FreeRTOSBluetooth] central state changed \(central.state)")
+    }
+    
+    func centralManager(_ central: CBCentralManager, didConnect peripheral: CBPeripheral) {
+        peripheral.delegate = self
+        debugPrint("[FreeRTOSBluetooth] deviceConnectedPeripheral")
+    }
+    
+    func centralManager(_ central: CBCentralManager, didDisconnectPeripheral peripheral: CBPeripheral, error: Error?) {
+        debugPrint("[FreeRTOSBluetooth] didDisconnectPeripheral")
+        peripheral.delegate = nil
+        connectedPeripherals.removeValue(forKey: peripheral.identifier)
+    }
+    
+    func centralManager(_ central: CBCentralManager, didFailToConnect peripheral: CBPeripheral, error: Error?) {
+        debugPrint("[FreeRTOSBluetooth didFailToConnect]")
+    }
+    
+}
+
+extension FreeRTOSBluetooth: CBPeripheralDelegate {
+
+    func peripheral(_ peripheral: CBPeripheral, didDiscoverServices error: Error?) {
+        peripheral.delegate = self
+        for service in peripheral.services ?? [] {
+            debugPrint("discoveredService: \(service.uuid.uuidString)")
+            peripheral.discoverCharacteristics(nil, for: service)
+        }
+    }
+    
+    func peripheral(_ peripheral: CBPeripheral, didDiscoverCharacteristicsFor service: CBService, error: Error?) {
+        peripheral.delegate = self
+        for characteristic in service.characteristics ?? [] {
+            debugPrint("discoverCharacteristics: \(characteristic.uuid.uuidString)")
+            // peripheral.setNotifyValue(true, for: characteristic)
+            // TODO: Add descriptors
+            // peripheral.discoverDescriptors(for: characteristic)
+        }
+    }
+    
+    func peripheral(_ peripheral: CBPeripheral, didDiscoverDescriptorsFor characteristic: CBCharacteristic, error: Error?) {
+        peripheral.delegate = self
+        for descriptors in characteristic.descriptors ?? [] {
+            debugPrint("discoverDescriptors: \(descriptors.uuid)")
+        }
+    }
+    
+    func peripheral(_ peripheral: CBPeripheral, didUpdateValueFor characteristic: CBCharacteristic, error: Error?) {
+        peripheral.delegate = self
+        guard let value = characteristic.value, let stringValue = String(data: value, encoding: .utf8) else {
+            debugPrint("invalid value for characteristic: \(characteristic.uuid.uuidString)")
+            return
+        }
+        
+        debugPrint("Notify characteristic: \(characteristic.uuid.uuidString), value: \(stringValue)")
+    }
 }

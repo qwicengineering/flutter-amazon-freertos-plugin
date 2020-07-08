@@ -54,11 +54,11 @@ class FreeRTOSDevice {
     // Will not be able to retreive custom services on iOS
     // until periperal.discoverServices() is called again
     // on device connect.
-    Future<void> discoverServices({List<String> serviceUUIDS = const []}) async {
+    Future<void> discoverServices({List<String> serviceUUIDS}) async {
         // invoke discoverServices();
         // retrieve them and return them
         _discoveredServices = PluginScaffold.createStream(_channel, "discoverServices", { "deviceUUID": uuid })
-                        .map((service) {                            
+                        .map((service) {
                             return BluetoothService.fromJson(service);
                         }).toList();
         await _channel.invokeListMethod("discoverServices", { "deviceUUID": uuid, "serviceUUIDS": serviceUUIDS });

@@ -12,7 +12,7 @@ public class SwiftFlutterAmazonFreeRTOSPlugin: NSObject, FlutterPlugin {
         let amazonFreeRTOSManager = AmazonFreeRTOSManager.shared
         let scanMethods = FreeRTOSBluetoothScan(amazonFreeRTOSManager)
         let connectMethods = FreeRTOSBluetoothConnect(amazonFreeRTOSManager)
-        let plugin = FreeRTOSBluetooth(amazonFreeRTOSManager)
+        let plugin = FreeRTOSBluetooth()
         let channel = createPluginScaffold(
             messenger: registrar.messenger(),
             channelName: pkgName,
@@ -22,12 +22,12 @@ public class SwiftFlutterAmazonFreeRTOSPlugin: NSObject, FlutterPlugin {
                 "startScanForDevicesOnListen": scanMethods.startScanForDevicesOnListen,
                 "startScanForDevicesOnCancel": scanMethods.startScanForDevicesOnCancel,
                 "rescanForDevices": scanMethods.rescanForDevices,
-                "connectToDeviceId": connectMethods.connectToDevice,
-                "disconnectFromDeviceId": connectMethods.disconnectFromDevice,
+                "connectToDeviceId": plugin.connectToDevice,
+                "disconnectFromDeviceId": plugin.disconnectFromDevice,
                 "deviceStateOnListen": connectMethods.deviceStateOnListen,
                 "deviceStateOnCancel": connectMethods.deviceStateOnCancel,
                 "deviceState": connectMethods.getDeviceState,
-                "discoverServices": connectMethods.discoverServices,
+                "discoverServices": plugin.discoverServices,
                 "discoverServicesOnListen": connectMethods.discoverServicesOnListen,
                 "discoverServicesOnCancel": connectMethods.discoverServicesOnCancel,
                 "writeDescriptor": plugin.writeDescriptor,
