@@ -23,7 +23,7 @@ dev_dependencies:
 
   build_runner: ^1.7.2
   mobx_codegen: ^1.0.0
-  flutter_cognito_plugin: ^1.1.0
+  flutter_cognito_plugin: ^2.2.0
 
   flutter_amazon_freertos_plugin:
     path: ../

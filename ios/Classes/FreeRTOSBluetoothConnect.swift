@@ -1,4 +1,3 @@
-import AmazonFreeRTOS
 import AWSMobileClient
 import AWSIoT
 import CoreBluetooth

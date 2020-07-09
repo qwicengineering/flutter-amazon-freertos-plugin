@@ -5,7 +5,6 @@
 //  Created by Sri Majji on 6/12/20.
 //
 
-import AmazonFreeRTOS
 import CoreBluetooth
 
 

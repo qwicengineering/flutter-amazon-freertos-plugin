@@ -1,5 +1,4 @@
 import UIKit
-import AmazonFreeRTOS
 import AWSMobileClient
 import CoreBluetooth
 
@@ -27,7 +26,7 @@ class FreeRTOSBluetooth: NSObject {
         
         // Use sdk notification characteristic success to check for bonding
         NotificationCenter.default.addObserver(self, selector: #selector(deviceConnectedObserver), name: .afrCentralManagerDidConnectDevice, object: nil)
-        NotificationCenter.default.addObserver(self, selector: #selector(disconnectPeripheral), name: .afrCentralManagerDidFailToConnectDevice, object: nil)
+//        NotificationCenter.default.addObserver(self, selector: #selector(disconnectPeripheral), name: .afrCentralManagerDidFailToConnectDevice, object: nil)
     }
 
     func bluetoothState(call: FlutterMethodCall, result: @escaping FlutterResult) {

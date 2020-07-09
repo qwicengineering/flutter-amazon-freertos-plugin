@@ -169,7 +169,7 @@ abstract class _BluetoothStore with Store {
                         Navigator.pushNamed(context, "/bluetoothDevice");
                     } else if (value == FreeRTOSDeviceState.DISCONNECTED) {
                         print("device disconnected");
-                        disconnect();
+                        // disconnect();
                     }
                 });
             }

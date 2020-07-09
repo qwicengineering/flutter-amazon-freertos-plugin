@@ -23,6 +23,8 @@ This plugin uses amazon freertos ios sdk to connect to freertos devices via ble.
   s.swift_version = "5.0"
 
   s.dependency "plugin_scaffold"
-  s.dependency "AWSMobileClient", "~> 2.11.0"
-  s.dependency "AmazonFreeRTOS", "~> 1.0.0"
+  s.dependency "AWSMobileClient", "~> 2.13.0"
+  s.dependency "AWSIoT", "~> 2.13.0"
+  # s.dependency "AmazonFreeRTOS", "~> 1.0.0"
+
 end

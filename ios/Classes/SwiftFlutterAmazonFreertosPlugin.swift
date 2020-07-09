@@ -2,7 +2,6 @@ import Flutter
 import UIKit
 import plugin_scaffold
 import CoreBluetooth
-import AmazonFreeRTOS
 
 
 let pkgName = "nl.qwic.plugins.flutter_amazon_freertos_plugin"
