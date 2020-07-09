@@ -25,8 +25,9 @@ class FreeRTOSBluetooth: NSObject {
         super.init()
         central = CBCentralManager(delegate: self, queue: nil, options: [CBCentralManagerOptionShowPowerAlertKey: true])
         
+        // Use sdk notification characteristic success to check for bonding
         NotificationCenter.default.addObserver(self, selector: #selector(deviceConnectedObserver), name: .afrCentralManagerDidConnectDevice, object: nil)
-//        NotificationCenter.default.addObserver(self, selector: #selector(deviceDisconnectedObserver), name: .afrCentralManagerDidDisconnectDevice, object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(disconnectPeripheral), name: .afrCentralManagerDidFailToConnectDevice, object: nil)
     }
 
     func bluetoothState(call: FlutterMethodCall, result: @escaping FlutterResult) {
@@ -86,6 +87,42 @@ class FreeRTOSBluetooth: NSObject {
         result(nil)
     }
     
+    func discoverServicesOnListen(id: Int, args: Any?, sink: @escaping FlutterEventSink) {
+        let map = args as! [String: Any?]
+        let deviceUUIDString = map["deviceUUID"] as! String
+        
+        let discoverServicesObserver = NotificationCenter.default.addObserver(forName: .flutterFreeRTOSPeripheralDidDiscoverCharacteristics, object: nil, queue: nil) {
+            notification in
+            
+            guard let peripheral = notification.userInfo?["peripheral"] as? CBPeripheral, peripheral.identifier.uuidString == deviceUUIDString else {
+                DispatchQueue.main.async {
+                    sink(FlutterEndOfEventStream)
+                }
+                return
+            }
+            
+            for service in peripheral.services ?? [] {
+                let response = dumpFreeRTOSDeviceServiceInfo(service)
+                sink(response)
+            }
+            
+            DispatchQueue.main.async {
+                sink(FlutterEndOfEventStream)
+            }
+        }
+        
+        notificationObservers[id] = [discoverServicesObserver]
+    }
+    
+    func discoverServicesOnCancel(id: Int, args: Any?) {
+        guard let observers = notificationObservers[id] else { return }
+        
+        for observer in observers {
+            NotificationCenter.default.removeObserver(observer)
+        }
+        debugPrint("[FreeRTOSBluetoothConnect] discoverServicesOnCancel id: \(id)")
+    }
+    
     func readDescriptor(call: FlutterMethodCall, result: @escaping FlutterResult) {
         result(FlutterMethodNotImplemented)
     }
@@ -142,13 +179,13 @@ extension FreeRTOSBluetooth {
     }
     
     @objc
-    func deviceDisconnectedObserver(_ notification: Notification) throws {
+    func disconnectPeripheral(_ notification: Notification) throws {
         let uuid = notification.userInfo?["identifier"] as! UUID
         guard let peripheral = connectedPeripherals[uuid], peripheral.state == .connected else {
             throw FreeRTOSBluetoothError.deviceNotConnected
         }
         central?.cancelPeripheralConnection(peripheral)
-        connectedPeripherals.removeValue(forKey: peripheral.identifier)
+//        connectedPeripherals.removeValue(forKey: peripheral.identifier)
     }
     
     // Helper functions
@@ -179,6 +216,7 @@ extension FreeRTOSBluetooth: CBCentralManagerDelegate {
     
     func centralManager(_ central: CBCentralManager, didFailToConnect peripheral: CBPeripheral, error: Error?) {
         debugPrint("[FreeRTOSBluetooth didFailToConnect]")
+        connectedPeripherals.removeValue(forKey: peripheral.identifier)
     }
     
 }
@@ -201,6 +239,8 @@ extension FreeRTOSBluetooth: CBPeripheralDelegate {
             // TODO: Add descriptors
             // peripheral.discoverDescriptors(for: characteristic)
         }
+        
+        NotificationCenter.default.post(name: .flutterFreeRTOSPeripheralDidDiscoverCharacteristics, object: nil, userInfo: ["service": service, "peripheral": peripheral])
     }
     
     func peripheral(_ peripheral: CBPeripheral, didDiscoverDescriptorsFor characteristic: CBCharacteristic, error: Error?) {
