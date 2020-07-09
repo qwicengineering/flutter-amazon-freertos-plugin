@@ -143,7 +143,7 @@ class FreeRTOSBluetoothConnect: NSObject {
                     continue
                 }
 
-                debugPrint("[FreeRTOSBluetoothConnect] discoveredService deviceUUID: \(device.identifier.uuidString), serviceUUID: \(service.uuid.uuidString)")
+//                debugPrint("[FreeRTOSBluetoothConnect] discoveredService deviceUUID: \(device.identifier.uuidString), serviceUUID: \(service.uuid.uuidString)")
                 discoveredCharacteristicsForService[service.uuid] = false;
                 device.discoverCharacteristics(nil, for: service)
             }
@@ -158,7 +158,7 @@ class FreeRTOSBluetoothConnect: NSObject {
                 return
             }
 
-            debugPrint("[FreeRTOSBluetoothConnect] discoveredCharacteristics deviceUUID: \(service.peripheral.identifier.uuidString), serviceUUID: \(service.uuid.uuidString)")
+//            debugPrint("[FreeRTOSBluetoothConnect] discoveredCharacteristics deviceUUID: \(service.peripheral.identifier.uuidString), serviceUUID: \(service.uuid.uuidString)")
 
             discoveredCharacteristicsForService[service.uuid] = true;
             let response = dumpFreeRTOSDeviceServiceInfo(service)

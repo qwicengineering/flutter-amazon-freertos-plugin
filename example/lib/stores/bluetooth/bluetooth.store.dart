@@ -61,7 +61,7 @@ abstract class _BluetoothStore with Store {
         // rescanForDevices() freshes the device list from the platform side.
         try {
             devicesNearby = ObservableList.of(await amazonFreeRTOSPlugin.discoveredDevices);
-            print("devicesNearby $devicesNearby");            
+            print("devicesNearby $devicesNearby");
         } catch (e) {
             print("Error: Failed to retreive nearby devices");
             print(e);
@@ -148,9 +148,9 @@ abstract class _BluetoothStore with Store {
         }
     }
 
-    Future<void> getServices() async {        
+    Future<void> getServices() async {
         try {
-            services = ObservableList.of(await activeDevice.services());                    
+            services = ObservableList.of(await activeDevice.services());
         }catch (error) {
             print('Error $error');
         }
@@ -164,14 +164,14 @@ abstract class _BluetoothStore with Store {
                 _deviceStateSubscription = device.observeState().listen((value) async {
                     if (value == FreeRTOSDeviceState.CONNECTED) {
                         isConnecting = false;
-                        activeDevice = device;                       
-                        await activeDevice.discoverServices(serviceUUIDS: [this.dashboardService]);                        
+                        activeDevice = device;
+                        await activeDevice.discoverServices(serviceUUIDS: [this.dashboardService]);
                         Navigator.pushNamed(context, "/bluetoothDevice");
                     } else if (value == FreeRTOSDeviceState.DISCONNECTED) {
                         print("device disconnected");
                         disconnect();
                     }
-                });                
+                });
             }
         } catch (e) {
             isConnecting = false;
