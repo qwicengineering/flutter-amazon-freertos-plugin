@@ -1,4 +1,5 @@
 import "package:flutter/material.dart";
+import 'package:flutter_amazon_freertos_plugin_example/bluetooth_service.screen.dart';
 import 'package:flutter_amazon_freertos_plugin_example/stores/bluetooth/bluetooth.store.dart';
 import "package:flutter_amazon_freertos_plugin_example/verify_user.screen.dart";
 import "package:flutter_amazon_freertos_plugin_example/widgets/start.widget.dart";
@@ -33,6 +34,7 @@ class MyApp extends StatelessWidget {
                     "/verifyUser": (context) => VerifyUserScreen(),
                     "/bluetoothDevices": (context) => BluetoothDevicesScreen(),
                     "/bluetoothDevice": (context) => BluetoothDeviceScreen(),
+                    "/bluetoothService": (context) => BluetoothServiceScreen(),
                 },
             ),
         );

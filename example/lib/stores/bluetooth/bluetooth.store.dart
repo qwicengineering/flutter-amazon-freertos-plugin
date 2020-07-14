@@ -23,7 +23,7 @@ abstract class _BluetoothStore with Store {
     ObservableList<FreeRTOSDevice> devicesNearby = ObservableList.of([]);
 
     @observable
-    FreeRTOSDevice activeDevice;
+    ObservableMap<String, FreeRTOSDevice> connectedDevices = ObservableMap.of({});
 
     @observable
     ObservableList<BluetoothService> services = ObservableList.of([]);
@@ -148,9 +148,9 @@ abstract class _BluetoothStore with Store {
         }
     }
 
-    Future<void> getServices() async {
+    Future<void> getServices(FreeRTOSDevice device) async {
         try {
-            services = ObservableList.of(await activeDevice.services());
+            services = ObservableList.of(await device.services());
         }catch (error) {
             print('Error $error');
         }
@@ -164,9 +164,9 @@ abstract class _BluetoothStore with Store {
                 _deviceStateSubscription = device.observeState().listen((value) async {
                     if (value == FreeRTOSDeviceState.CONNECTED) {
                         isConnecting = false;
-                        activeDevice = device;
-                        await activeDevice.discoverServices(serviceUUIDS: [this.dashboardService]);
-                        Navigator.pushNamed(context, "/bluetoothDevice");
+                        await device.discoverServices(serviceUUIDS: [this.dashboardService]);
+                        connectedDevices[device.uuid] = device;
+                        Navigator.pushNamed(context, "/bluetoothDevice", arguments: { "uuid": device.uuid});
                     } else if (value == FreeRTOSDeviceState.DISCONNECTED) {
                         print("device disconnected");
                         disconnect();
@@ -175,17 +175,21 @@ abstract class _BluetoothStore with Store {
             }
         } catch (e) {
             isConnecting = false;
-            activeDevice = null;
+            connectedDevices.remove(device.uuid);
             print("Unable to connect to device: $e");
         }
     }
 
     @action
-    disconnect() {
+    disconnect({ String uuid }) {
+        var activeDevice = connectedDevices[uuid];
+        if (activeDevice == null) {
+            print("Cannot find device");
+        }
         devicesNearby.clear();
         services.clear();
         activeDevice.disconnect();
-        activeDevice = null;
+        connectedDevices.remove(activeDevice.uuid);
         _scanforDevicesSubscription.cancel();
         _scanforDevicesSubscription = null;
         _deviceStateSubscription.cancel();

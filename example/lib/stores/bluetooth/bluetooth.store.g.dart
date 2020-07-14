@@ -50,21 +50,21 @@ mixin _$BluetoothStore on _BluetoothStore, Store {
     }, _$devicesNearbyAtom, name: '${_$devicesNearbyAtom.name}_set');
   }
 
-  final _$activeDeviceAtom = Atom(name: '_BluetoothStore.activeDevice');
+  final _$connectedDevicesAtom = Atom(name: '_BluetoothStore.connectedDevices');
 
   @override
-  FreeRTOSDevice get activeDevice {
-    _$activeDeviceAtom.context.enforceReadPolicy(_$activeDeviceAtom);
-    _$activeDeviceAtom.reportObserved();
-    return super.activeDevice;
+  ObservableMap<String, FreeRTOSDevice> get connectedDevices {
+    _$connectedDevicesAtom.context.enforceReadPolicy(_$connectedDevicesAtom);
+    _$connectedDevicesAtom.reportObserved();
+    return super.connectedDevices;
   }
 
   @override
-  set activeDevice(FreeRTOSDevice value) {
-    _$activeDeviceAtom.context.conditionallyRunInAction(() {
-      super.activeDevice = value;
-      _$activeDeviceAtom.reportChanged();
-    }, _$activeDeviceAtom, name: '${_$activeDeviceAtom.name}_set');
+  set connectedDevices(ObservableMap<String, FreeRTOSDevice> value) {
+    _$connectedDevicesAtom.context.conditionallyRunInAction(() {
+      super.connectedDevices = value;
+      _$connectedDevicesAtom.reportChanged();
+    }, _$connectedDevicesAtom, name: '${_$connectedDevicesAtom.name}_set');
   }
 
   final _$servicesAtom = Atom(name: '_BluetoothStore.services');
@@ -136,10 +136,10 @@ mixin _$BluetoothStore on _BluetoothStore, Store {
   }
 
   @override
-  dynamic disconnect() {
+  dynamic disconnect({String uuid}) {
     final _$actionInfo = _$_BluetoothStoreActionController.startAction();
     try {
-      return super.disconnect();
+      return super.disconnect(uuid: uuid);
     } finally {
       _$_BluetoothStoreActionController.endAction(_$actionInfo);
     }
@@ -148,7 +148,7 @@ mixin _$BluetoothStore on _BluetoothStore, Store {
   @override
   String toString() {
     final string =
-        'bluetoothState: ${bluetoothState.toString()},devicesNearby: ${devicesNearby.toString()},activeDevice: ${activeDevice.toString()},services: ${services.toString()},isConnecting: ${isConnecting.toString()},isBluetoothSupportedAndOn: ${isBluetoothSupportedAndOn.toString()}';
+        'bluetoothState: ${bluetoothState.toString()},devicesNearby: ${devicesNearby.toString()},connectedDevices: ${connectedDevices.toString()},services: ${services.toString()},isConnecting: ${isConnecting.toString()},isBluetoothSupportedAndOn: ${isBluetoothSupportedAndOn.toString()}';
     return '{$string}';
   }
 }
