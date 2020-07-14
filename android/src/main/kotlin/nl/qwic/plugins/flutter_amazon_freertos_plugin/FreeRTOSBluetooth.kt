@@ -37,6 +37,7 @@ class FreeRTOSBluetooth(context: Context) {
     private val freeRTOSDevices: MutableMap<String, Map<String, Any>> = mutableMapOf()
     private val connectedDevices: MutableMap<String, AmazonFreeRTOSDevice> = mutableMapOf()
     private val bluetoothGattConnections: MutableMap<String, BluetoothGatt> = mutableMapOf()
+    private var customServices: List<String> = listOf();
     private var deviceStateReceiver: BroadcastReceiver? = null
     private val CUSTOM_ACTION_DISCOVERED_SERVICES = "com.qwic.DiscoverServices"
 
@@ -270,11 +271,16 @@ class FreeRTOSBluetooth(context: Context) {
     fun discoverServices(call: MethodCall, result: MethodChannel.Result) {
         try {
             val deviceUUID = call.argument<String>("deviceUUID")
+            val serviceUUIDS = call.argument<ArrayList<String>>("serviceUUIDS")
             val gattConnection = bluetoothGattConnections[deviceUUID]
-
+            customServices = listOf();
             if(gattConnection == null) {
                 result.error("500", "GATT Connection not found", "There's no GATT connection with the given deviceUUID param")
                 return
+            }
+
+            if(serviceUUIDS != null) {
+                customServices = serviceUUIDS.map { it.toLowerCase() };
             }
 
             // Seems to be working now thanks to the runOnUiThread, sleep, removeBond and clearCache
@@ -304,10 +310,20 @@ class FreeRTOSBluetooth(context: Context) {
                     override fun onReceive(context: Context, intent: Intent) {
                         val action = intent.action
                         if (CUSTOM_ACTION_DISCOVERED_SERVICES == action && gattConnection != null) {
-                            gattConnection.services.forEach {
-                                services.add(dumpFreeRTOSDeviceServiceInfo(it, deviceUUID))
-                                sink.success(dumpFreeRTOSDeviceServiceInfo(it, deviceUUID));
+                            if(customServices.isNotEmpty()) {
+                                gattConnection.services.forEach {
+                                    if(customServices.contains(it.uuid.toString().toLowerCase())) {
+                                        services.add(dumpFreeRTOSDeviceServiceInfo(it, deviceUUID))
+                                        sink.success(dumpFreeRTOSDeviceServiceInfo(it, deviceUUID));
+                                    }
+                                }
+                            } else {
+                                gattConnection.services.forEach {
+                                    services.add(dumpFreeRTOSDeviceServiceInfo(it, deviceUUID))
+                                    sink.success(dumpFreeRTOSDeviceServiceInfo(it, deviceUUID));
+                                }
                             }
+
                         }
                         sink.endOfStream();
                     }
@@ -424,6 +440,7 @@ class FreeRTOSBluetooth(context: Context) {
             }
             // Recommended to run in the main UI Thread
             runOnUiThread {
+                customServices = arrayListOf();
                 awsFreeRTOSManager.disconnectFromDevice(connectedDevice);
                 removeBond(bleDevice);
                 refreshDeviceCache(gattConnection)

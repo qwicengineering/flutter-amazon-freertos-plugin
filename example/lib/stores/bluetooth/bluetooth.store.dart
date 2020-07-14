@@ -184,7 +184,9 @@ abstract class _BluetoothStore with Store {
     disconnect() {
         devicesNearby.clear();
         services.clear();
-        activeDevice.disconnect();
+        if(activeDevice != null){
+            activeDevice.disconnect();
+        }
         activeDevice = null;
         _scanforDevicesSubscription.cancel();
         _scanforDevicesSubscription = null;
