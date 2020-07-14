@@ -8,15 +8,20 @@ import "package:provider/provider.dart";
 import "package:flutter_amazon_freertos_plugin/flutter_amazon_freertos_plugin.dart";
 
 class BluetoothDeviceScreen extends StatelessWidget {
+
     @override
     Widget build(BuildContext context)  {
         final bluetoothStore = Provider.of<BluetoothStore>(context);
-        FreeRTOSDevice device = bluetoothStore.activeDevice;
-        List<BluetoothService> services = bluetoothStore.services;
+        final Map args = ModalRoute.of(context).settings.arguments;
 
-        void _getServices() async {
-            await bluetoothStore.getServices();
+        FreeRTOSDevice device = bluetoothStore.connectedDevices[args["uuid"]];
+
+        if (device == null) {
+            print("Unable to find connected device");
+            Navigator.pop(context);
         }
+
+        List<BluetoothService> services = bluetoothStore.services;
 
         void _writeToCharacteristic(int value) {
             // start counter = 0
@@ -68,7 +73,7 @@ class BluetoothDeviceScreen extends StatelessWidget {
                             Row(
                                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                                 children: <Widget>[
-                                    OutlineButton(child: Text("services"), onPressed: _getServices,),
+                                    OutlineButton(child: Text("services"), onPressed: () => bluetoothStore.getServices(device),),
                                     OutlineButton(child: Text("disconnect"), onPressed: _disconnect)
                                 ],
                             ),
@@ -78,12 +83,12 @@ class BluetoothDeviceScreen extends StatelessWidget {
                                     child: ListView.builder(
                                             itemCount: bluetoothStore.services.length,
                                             itemBuilder: (context, index) {
-                                                return Container(
-                                                        height: 100,
+                                                return GestureDetector(
+                                                        onTap: () => Navigator.pushNamed(context, "/bluetoothService", arguments: { "service": bluetoothStore.services[index]}),
                                                         child: Column(
                                                             crossAxisAlignment: CrossAxisAlignment.start,
                                                             children: <Widget>[
-                                                                Text("${bluetoothStore.services[index].uuid}"),
+                                                                Text("uuid: ${bluetoothStore.services[index].uuid}"),
                                                                 Text("isPrimary: ${bluetoothStore.services[index].isPrimary}"),
                                                                 Text("charecteristicSize: ${bluetoothStore.services[index].characteristics.length}")
                                                             ]
