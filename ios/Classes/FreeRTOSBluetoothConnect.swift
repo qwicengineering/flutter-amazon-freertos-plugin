@@ -79,9 +79,6 @@ class FreeRTOSBluetoothConnect: NSObject {
             return
         }
 
-        // TODO: Invoke attachPrincipalPolicy using channel method
-        _attachPrincipalPolicy()
-        
         device.connect(reconnect: reconnect, credentialsProvider: AWSMobileClient.default())
         result(nil)
     }
@@ -129,10 +126,10 @@ class FreeRTOSBluetoothConnect: NSObject {
         let map = args as! [String: Any?]
         let customServiceUUIDs = map["serviceUUIDS"] as? [String] ?? []
         let customServices: [CBUUID] = customServiceUUIDs.map { CBUUID(string: "\($0)") }
-        
+
         var discoveredCharacteristicsForService = [CBUUID: Bool]()
-        
-        
+
+
         let discoverServicesObserver = NotificationCenter.default.addObserver(forName: .afrPeripheralDidDiscoverServices, object: nil, queue: nil) {
             notification in
             let device = notification.userInfo?["peripheral"] as! CBPeripheral
@@ -148,7 +145,7 @@ class FreeRTOSBluetoothConnect: NSObject {
                 device.discoverCharacteristics(nil, for: service)
             }
         }
-        
+
         let discoverCharacteristicsObserver = NotificationCenter.default.addObserver(forName: .afrPeripheralDidDiscoverCharacteristics, object: nil, queue: nil) {
             notification in
 
@@ -164,7 +161,7 @@ class FreeRTOSBluetoothConnect: NSObject {
             let response = dumpFreeRTOSDeviceServiceInfo(service)
             sink(response)
 
-            
+
             // End stream asynchrously since not all of the events were being
             // captured on Flutter
             if discoveredCharacteristicsForService.values.allSatisfy({ $0 == true }) {
@@ -184,44 +181,6 @@ class FreeRTOSBluetoothConnect: NSObject {
             NotificationCenter.default.removeObserver(observer)
         }
         debugPrint("[FreeRTOSBluetoothConnect] discoverServicesOnCancel id: \(id)")
-    }
-
-    // Attaches proper policy to the Cognito on sign-in
-    // This allows user to subscribe and publish messages to IoT Core
-    // via MQTT protocol
-    // See https://github.com/aws-samples/aws-iot-chat-example/blob/master/docs/authentication.md
-    // This is used strictly for example code
-    // TODO: Create a serverless example
-    func _attachPrincipalPolicy() {
-
-        AWSMobileClient.default().getIdentityId().continueWith { task -> Any? in
-
-            if let error = task.error {
-                print(error)
-                return task
-            }
-
-            guard let attachPrincipalPolicyRequest = AWSIoTAttachPrincipalPolicyRequest(), let principal = task.result else {
-                return task
-            }
-
-            attachPrincipalPolicyRequest.policyName = "IoT_ESP_AuthPolicy"
-            attachPrincipalPolicyRequest.principal = String(principal)
-
-            let configuration = AWSServiceConfiguration(
-                region: .EUWest1, credentialsProvider: AWSMobileClient.default()
-            )
-
-            AWSServiceManager.default()?.defaultServiceConfiguration = configuration
-
-            AWSIoT.default().attachPrincipalPolicy(attachPrincipalPolicyRequest, completionHandler: { error in
-                if let error = error {
-                    print(error)
-                }
-            })
-
-            return task
-        }
     }
 
     func _getDevice(_ uuidString: String) -> AmazonFreeRTOSDevice? {

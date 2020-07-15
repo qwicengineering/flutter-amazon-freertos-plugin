@@ -39,9 +39,9 @@ class FreeRTOSDevice {
             mtu = jsonData["mtu"];
 
     // It need to throw a new exception to be catched where this method is called from
-    Future<void> connect() async {
+    Future<void> connect({ bool reconnect = true }) async {
         try {
-            await _channel.invokeMethod("connectToDeviceId", { "deviceUUID": uuid });
+            await _channel.invokeMethod("connectToDeviceId", { "deviceUUID": uuid, "reconect": reconnect });
         } on PlatformException catch(e) {
             throw new Exception(e);
         }
