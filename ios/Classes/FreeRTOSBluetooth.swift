@@ -1,5 +1,6 @@
 import UIKit
 import AmazonFreeRTOS
+import AWSIoT
 import AWSMobileClient
 import CoreBluetooth
 
@@ -38,7 +39,7 @@ class FreeRTOSBluetooth: NSObject {
     func connectToDevice(call: FlutterMethodCall, result: @escaping FlutterResult) throws {
         let map = call.arguments as! [String: Any?]
         let uuidString = map["deviceUUID"] as! String
-        let reconnect = map["reconnect"] as? Bool ?? false
+        let reconnect = map["reconnect"] as? Bool ?? true
         
         guard let device = getAmazonFreeRTOSDevice(uuidString: uuidString) else {
             debugPrint("[FreeRTOSBluetooth] connectToDevice cannot find device uuid: \(uuidString)")
@@ -162,6 +163,51 @@ class FreeRTOSBluetooth: NSObject {
 
     func setMtu(call: FlutterMethodCall, result: @escaping FlutterResult) {
         result(FlutterMethodNotImplemented)
+    }
+    
+    // Attaches proper policy to the Cognito on sign-in
+    // This allows user to subscribe and publish messages to IoT Core
+    // via MQTT protocol
+    // See https://github.com/aws-samples/aws-iot-chat-example/blob/master/docs/authentication.md
+    // This is used strictly for example code
+    // TODO: Create a serverless example
+    func attachPrincipalPolicy(call: FlutterMethodCall, result: @escaping FlutterResult) {
+        let map = call.arguments as! [String: Any?]
+        let policyName = map["policyName"] as! String
+        let region = map["awsRegion"] as! Int
+        
+        AWSMobileClient.default().getIdentityId().continueWith { task -> Any? in
+            
+            if let error = task.error {
+                print(error)
+                return task
+            }
+            
+            guard let attachPrincipalPolicyRequest = AWSIoTAttachPrincipalPolicyRequest(), let principal = task.result else {
+                return task
+            }
+            
+            attachPrincipalPolicyRequest.policyName = policyName
+            attachPrincipalPolicyRequest.principal = String(principal)
+            
+            let awsRegion = AWSRegionType(rawValue: region) ?? AWSRegionType.EUWest1
+            
+            let configuration = AWSServiceConfiguration(
+                region: awsRegion, credentialsProvider: AWSMobileClient.default()
+            )
+            
+            AWSServiceManager.default()?.defaultServiceConfiguration = configuration
+            
+            AWSIoT.default().attachPrincipalPolicy(attachPrincipalPolicyRequest, completionHandler: { error in
+                if let error = error {
+                    print(error)
+                }
+            })
+            
+            return task
+        }
+        
+        result(nil)
     }
 
 }
