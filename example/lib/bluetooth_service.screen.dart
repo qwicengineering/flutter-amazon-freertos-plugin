@@ -21,12 +21,10 @@ class BluetoothServiceScreen extends StatelessWidget {
         FreeRTOSDevice device = bluetoothStore.connectedDevices[service.deviceUUID];
         List characteristics = service.characteristics;
 
-        _readCharacteristic(BluetoothCharacteristic characteristic) async {
-            print("before reading: ${characteristic.value}");
-            await characteristic.readValue();
-            print("encoded: ${characteristic.value}");
-            print("decoded: ${decodeToInt(characteristic.value)}");
-            return decodeToInt(characteristic.value);
+         _readCharacteristic(BluetoothCharacteristic characteristic) async {            
+            var test = await characteristic.readValue();                 
+            // TODO: needs to be decoded
+            return test;
         }
 
         return Observer(name: "BluetoothScreen",
@@ -43,29 +41,33 @@ class BluetoothServiceScreen extends StatelessWidget {
                                 flex: 1,
                                 child: Container(
                                     child: ListView.builder(
-                                        itemCount: characteristics.length,
-                                        itemBuilder: (context, index) {
-                                            return Padding(
-                                                padding: const EdgeInsets.all(16.0),
-                                                child: new FutureBuilder(
+                                            itemCount: characteristics.length,
+                                            itemBuilder: (context, index) {
+                                                var value = FutureBuilder<Object>(
                                                     future: _readCharacteristic(characteristics[index]),
-                                                    builder: (context, snapshot) {
-                                                        return Container(
-                                                            height: 100,
-                                                            child: Column(                                                            
-                                                                crossAxisAlignment: CrossAxisAlignment.start,
-                                                                children: <Widget>[
-                                                                    Text("Id: ${characteristics[index].uuid}"),
-                                                                    Text("isNotifying: ${characteristics[index].isNotifying}"),
-                                                                    Text("Value: ${snapshot.connectionState == ConnectionState.done ? snapshot.data : "loading"}"),
-                                                                    OutlineButton(child: Text("Log value (check logs)"), onPressed: () => _readCharacteristic(characteristics[index]))                                                                
-                                                                ]
-                                                            )
-                                                        );
+                                                    builder: (context, AsyncSnapshot<Object> snapshot) {
+                                                        if (snapshot.hasData) {                                                            
+                                                            return Text("value: ${snapshot.data.toString()}");
+                                                        } else {
+                                                            return CircularProgressIndicator();
+                                                        }
                                                     }
-                                                ),
-                                            );                                            
-                                        }
+                                                );
+                                                return Padding(
+                                                    padding: const EdgeInsets.all(16.0),
+                                                    child: Container(                                                        
+                                                        child: Column(
+                                                            crossAxisAlignment: CrossAxisAlignment.start,
+                                                            children: <Widget>[
+                                                                Text("Id: ${characteristics[index].uuid}"),
+                                                                Text("isNotifying: ${characteristics[index].isNotifying}"),
+                                                                value,
+                                                                OutlineButton(child: Text("Log value"), onPressed: () => print(_readCharacteristic(characteristics[index]))),                                                                
+                                                            ]
+                                                        )
+                                                    ),
+                                                );
+                                            }
                                     )
                                 ),
                             ),

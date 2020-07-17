@@ -59,6 +59,7 @@ class FreeRTOSDevice {
         // retrieve them and return them
         _discoveredServices = PluginScaffold.createStream(_channel, "discoverServices", { "deviceUUID": uuid })
                         .map((service) {
+                            print("service ------------_____------------ $service");
                             return BluetoothService.fromJson(service);
                         }).toList();
         await _channel.invokeListMethod("discoverServices", { "deviceUUID": uuid, "serviceUUIDS": serviceUUIDS });
@@ -123,14 +124,13 @@ class BluetoothCharacteristic {
         );
     }
 
-    Future<void> readValue() async {
-        await _channel.invokeMethod("readCharacteristic",
-            {
-                "deviceUUID": deviceUUID,
-                "serviceUUID": serviceUUID,
-                "characteristicUUID": uuid,
-            }
-        );
+    Future<List> readValue() async {
+        return PluginScaffold.createStream(_channel, "readCharacteristic", 
+        {
+            "deviceUUID": deviceUUID,
+            "serviceUUID": serviceUUID,
+            "characteristicUUID": uuid,
+        }).toList();
     }
 }
 
