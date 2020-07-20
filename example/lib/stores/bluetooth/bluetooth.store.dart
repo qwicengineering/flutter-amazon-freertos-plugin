@@ -168,8 +168,7 @@ abstract class _BluetoothStore with Store {
                         connectedDevices[device.uuid] = device;
                         Navigator.pushNamed(context, "/bluetoothDevice", arguments: { "uuid": device.uuid});
                     } else if (value == FreeRTOSDeviceState.DISCONNECTED) {
-                        print("device disconnected");
-                        disconnect();
+                        print("device disconnected");                        
                     }
                 });
             }

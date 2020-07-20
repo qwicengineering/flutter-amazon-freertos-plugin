@@ -124,39 +124,39 @@ class FreeRTOSBluetooth(context: Context) {
 
     private val bluetoothGattCallback = object : BluetoothGattCallback() {
         override fun onConnectionStateChange(gatt: BluetoothGatt, status: Int, newState: Int) {
-            if (newState == BluetoothProfile.STATE_CONNECTED) {
-                Log.i(TAG, "Connected to GATT client. Attempting to start service discovery");
-                // TODO: check what is the best value to send here and if still necessary
-                // gatt.requestMtu(510);
+            if (status == BluetoothGatt.GATT_SUCCESS) {
+                if (newState == BluetoothProfile.STATE_CONNECTED) {
+                    Log.i(TAG, "Connected to GATT client. Attempting to start service discovery");
+                    // TODO: check what is the best value to send here and if still necessary
+                    // gatt.requestMtu(510);
 
-                // This is needed to avoid connection problems
-                // (https://stackoverflow.com/questions/20069507/gatt-callback-fails-to-register)
-                try {
-                    Thread.sleep(600)
-                } catch (e: InterruptedException) {
-                    e.printStackTrace()
-                    Log.e(TAG, e.printStackTrace().toString())
+                    // This is needed to avoid connection problems
+                    // (https://stackoverflow.com/questions/20069507/gatt-callback-fails-to-register)
+                    // https://stackoverflow.com/questions/41434555/onservicesdiscovered-never-called-while-connecting-to-gatt-server
+                    try {
+                        Thread.sleep(600)
+                    } catch (e: InterruptedException) {
+                        e.printStackTrace()
+                        Log.e(TAG, e.printStackTrace().toString())
+                    }
+
+                } else if (newState == BluetoothProfile.STATE_DISCONNECTED) {
+                    Log.i(TAG, "Disconnected from GATT client");
                 }
-
-            } else if (newState == BluetoothProfile.STATE_DISCONNECTED) {
-                Log.i(TAG, "Disconnected from GATT client");
-                gatt.close();
             }
+
         }
 
         override fun onServicesDiscovered(gatt: BluetoothGatt, status: Int) {
-            // TODO: Not sure if runOnUiThread is needed
-            runOnUiThread {
-                if (status == BluetoothGatt.GATT_SUCCESS) {
-                    // It notifies that services are successfully discovered
-                    val intent = Intent();
-                    intent.action = CUSTOM_ACTION_DISCOVERED_SERVICES;
-                    context.sendBroadcast(intent);
-                    Log.w(TAG, "onServicesDiscovered received: $status");
-                } else {
-                    Log.e(TAG, "Service discovery failed $status");
-                    Log.w(TAG, "onServicesDiscovered received: $status");
-                }
+            if (status == BluetoothGatt.GATT_SUCCESS) {
+                // It notifies that services are successfully discovered
+                val intent = Intent();
+                intent.action = CUSTOM_ACTION_DISCOVERED_SERVICES;
+                context.sendBroadcast(intent);
+                Log.w(TAG, "onServicesDiscovered received: $status");
+            } else {
+                Log.e(TAG, "Service discovery failed $status");
+                Log.w(TAG, "onServicesDiscovered received: $status");
             }
         }
 
@@ -257,13 +257,11 @@ class FreeRTOSBluetooth(context: Context) {
                 // If device is still paired before connecting, then gatt.discoverServices() won't work
                 val credentialsProvider: AWSCredentialsProvider = AWSMobileClient.getInstance()
                 connectedDevices[device.address] = awsFreeRTOSManager.connectToDevice(device, connectionStatusCallback, credentialsProvider, reconnect)
-                removeBond(device);
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
                     bluetoothGattConnections[device.address] = device.connectGatt(context, false, bluetoothGattCallback, BluetoothDevice.TRANSPORT_LE)
                 } else {
                     bluetoothGattConnections[device.address] = device.connectGatt(context, false, bluetoothGattCallback)
                 }
-
                 // Refresh device cache to avoid issues with it's services
                 refreshDeviceCache(bluetoothGattConnections[device.address]!!);
             }
@@ -310,33 +308,30 @@ class FreeRTOSBluetooth(context: Context) {
             val deviceUUID = map["deviceUUID"] as String
             val gattConnection = bluetoothGattConnections[deviceUUID]
 
-            // Recommended to run this code in the main thread to avoid issues
-            runOnUiThread {
-                // When onServicesDiscovered() callback is run, it notifies and this listen to it
-                discoverServicesReceiver = object : BroadcastReceiver() {
-                    override fun onReceive(context: Context, intent: Intent) {
-                        val action = intent.action
-                        if (CUSTOM_ACTION_DISCOVERED_SERVICES == action && gattConnection != null) {
-                            if(customServices.isNotEmpty()) {
-                                gattConnection.services.forEach {
-                                    val serviceData = dumpFreeRTOSDeviceServiceInfo(it, deviceUUID)
-                                    if(customServices.contains(it.uuid.toString().toLowerCase())) {
-                                        sink.success(serviceData);
-                                    }
-                                }
-                            } else {
-                                gattConnection.services.forEach {
-                                    val serviceData = dumpFreeRTOSDeviceServiceInfo(it, deviceUUID)
+            // When onServicesDiscovered() callback is run, it notifies and this listen to it
+            discoverServicesReceiver = object : BroadcastReceiver() {
+                override fun onReceive(context: Context, intent: Intent) {
+                    val action = intent.action
+                    if (CUSTOM_ACTION_DISCOVERED_SERVICES == action && gattConnection != null) {
+                        if(customServices.isNotEmpty()) {
+                            gattConnection.services.forEach {
+                                val serviceData = dumpFreeRTOSDeviceServiceInfo(it, deviceUUID)
+                                if(customServices.contains(it.uuid.toString().toLowerCase())) {
                                     sink.success(serviceData);
                                 }
                             }
+                        } else {
+                            gattConnection.services.forEach {
+                                val serviceData = dumpFreeRTOSDeviceServiceInfo(it, deviceUUID)
+                                sink.success(serviceData);
+                            }
                         }
-                        sink.endOfStream();
                     }
+                    sink.endOfStream();
                 }
-                val filter = IntentFilter(CUSTOM_ACTION_DISCOVERED_SERVICES);
-                context.registerReceiver(discoverServicesReceiver, filter)
             }
+            val filter = IntentFilter(CUSTOM_ACTION_DISCOVERED_SERVICES);
+            context.registerReceiver(discoverServicesReceiver, filter)
 
         } catch(error: Exception) {
             Log.e(TAG, error.message);
@@ -440,11 +435,11 @@ class FreeRTOSBluetooth(context: Context) {
             }
             // Recommended to run in the main UI Thread
             runOnUiThread {
-                customServices = arrayListOf();
                 awsFreeRTOSManager.disconnectFromDevice(connectedDevice);
-                removeBond(bleDevice);
-                refreshDeviceCache(gattConnection)
                 gattConnection.disconnect();
+                removeBond(connectedDevice.mBluetoothDevice);
+                refreshDeviceCache(gattConnection);
+                customServices = arrayListOf();
                 bluetoothDevices.remove(deviceUUID);
                 connectedDevices.remove(deviceUUID);
                 bluetoothGattConnections.remove(deviceUUID);
@@ -504,11 +499,9 @@ class FreeRTOSBluetooth(context: Context) {
             return
         }
 
-        // TODO: not sure if runOnUiThread is needed
-        runOnUiThread {
-            characteristic.setValue(value);
-            gattConnection.writeCharacteristic(characteristic);
-        }
+        characteristic.value = value;
+        gattConnection.writeCharacteristic(characteristic);
+
     }
 
     fun readCharacteristicOnListen(id: Int, args: Any?, sink: EventChannel.EventSink) {
@@ -578,7 +571,5 @@ class FreeRTOSBluetooth(context: Context) {
 
     fun readCharacteristicOnCancel(id: Int, args: Any?) {
         // This method is triggered once sink.endOfStream() is run
-        if(readCharacteristicReceiver == null) return
-        context.unregisterReceiver(readCharacteristicReceiver)
     }
 }
