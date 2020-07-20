@@ -24,7 +24,7 @@ class BluetoothServiceScreen extends StatelessWidget {
          _readCharacteristic(BluetoothCharacteristic characteristic) async {            
             var test = await characteristic.readValue();                 
             // TODO: needs to be decoded
-            return test;
+            return test.toString();
         }
 
         return Observer(name: "BluetoothScreen",
@@ -42,17 +42,7 @@ class BluetoothServiceScreen extends StatelessWidget {
                                 child: Container(
                                     child: ListView.builder(
                                             itemCount: characteristics.length,
-                                            itemBuilder: (context, index) {
-                                                var value = FutureBuilder<Object>(
-                                                    future: _readCharacteristic(characteristics[index]),
-                                                    builder: (context, AsyncSnapshot<Object> snapshot) {
-                                                        if (snapshot.hasData) {                                                            
-                                                            return Text("value: ${snapshot.data.toString()}");
-                                                        } else {
-                                                            return CircularProgressIndicator();
-                                                        }
-                                                    }
-                                                );
+                                            itemBuilder: (context, index) {                                               
                                                 return Padding(
                                                     padding: const EdgeInsets.all(16.0),
                                                     child: Container(                                                        
@@ -60,9 +50,8 @@ class BluetoothServiceScreen extends StatelessWidget {
                                                             crossAxisAlignment: CrossAxisAlignment.start,
                                                             children: <Widget>[
                                                                 Text("Id: ${characteristics[index].uuid}"),
-                                                                Text("isNotifying: ${characteristics[index].isNotifying}"),
-                                                                value,
-                                                                OutlineButton(child: Text("Log value"), onPressed: () => print(_readCharacteristic(characteristics[index]))),                                                                
+                                                                Text("isNotifying: ${characteristics[index].isNotifying}"),                                                                
+                                                                OutlineButton(child: Text("Read value (see logs)"), onPressed: () async => print("Value: ${await _readCharacteristic(characteristics[index])}")),                                                                
                                                             ]
                                                         )
                                                     ),
