@@ -58,8 +58,7 @@ class FreeRTOSDevice {
         // invoke discoverServices();
         // retrieve them and return them
         _discoveredServices = PluginScaffold.createStream(_channel, "discoverServices", { "deviceUUID": uuid })
-                        .map((service) {
-                            print("service ------------_____------------ $service");
+                        .map((service) {                            
                             return BluetoothService.fromJson(service);
                         }).toList();
         await _channel.invokeListMethod("discoverServices", { "deviceUUID": uuid, "serviceUUIDS": serviceUUIDS });
