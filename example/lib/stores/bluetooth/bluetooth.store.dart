@@ -168,8 +168,7 @@ abstract class _BluetoothStore with Store {
                         connectedDevices[device.uuid] = device;
                         Navigator.pushNamed(context, "/bluetoothDevice", arguments: { "uuid": device.uuid});
                     } else if (value == FreeRTOSDeviceState.DISCONNECTED) {
-                        print("device disconnected");
-                        disconnect();
+                        print("device disconnected");                        
                     }
                 });
             }
@@ -181,21 +180,22 @@ abstract class _BluetoothStore with Store {
     }
 
     @action
-    disconnect({ String uuid }) {
+    disconnect({ String uuid }) async {
         var activeDevice = connectedDevices[uuid];
         if (activeDevice == null) {
             print("Cannot find device");
+        }else {
+            await activeDevice.disconnect();
+            connectedDevices.remove(activeDevice.uuid);
+            activeDevice = null;
         }
         devicesNearby.clear();
         services.clear();
-        activeDevice.disconnect();
-        connectedDevices.remove(activeDevice.uuid);
-        _scanforDevicesSubscription.cancel();
+        await _scanforDevicesSubscription.cancel();
         _scanforDevicesSubscription = null;
-        _deviceStateSubscription.cancel();
+        await _deviceStateSubscription.cancel();
         _deviceStateSubscription = null;
         isConnecting = false;
-
     }
 
     // AmazonFreeRTOS GATT Server Demo

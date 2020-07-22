@@ -23,7 +23,8 @@ class BluetoothDeviceScreen extends StatelessWidget {
 
         List<BluetoothService> services = bluetoothStore.services;
 
-        void _writeToCharacteristic(int value) {
+        // TODO: This used to work with AWS demo
+        void _writeToCharacteristic(int value) {    
             // start counter = 0
             // stop counter = 1
             // reset counter = 2
@@ -38,31 +39,17 @@ class BluetoothDeviceScreen extends StatelessWidget {
             customChar.writeValue(Uint8List.fromList([value]));
         }
 
-        void _readCharacteristic() async {
-            // var services = await device.discoverServices();
-            var characteristics = services.firstWhere((service) => service.uuid.toString().toLowerCase() == bluetoothStore.demoService).characteristics;
-            if (characteristics.length < 0) {
-                print("No characteristics found");
-                return;
-            }
-
-            BluetoothCharacteristic customChar = characteristics.firstWhere((c) => c.uuid.toString().toLowerCase() == bluetoothStore.demoRead);
-            await customChar.readValue();
-            print(decodeToInt(customChar.value));
-        }
-
-        void _disconnect() {
-            // stateSubscription.cancel();
-            bluetoothStore.disconnect();
-            Navigator.popAndPushNamed(context, "/bluetoothDevices");
+        void _disconnect() async {            
+            await bluetoothStore.disconnect(uuid: device.uuid);
+            Navigator.pushNamed(context, "/bluetoothDevices");
         }
 
         return Observer(name: "BluetoothDevice",
             builder: (_) => Scaffold(
                 appBar: AppBar(
-                    title: Text("${device.name}"),
+                    title: device != null ? Text("${device.name}") : Text(""),
                 ),
-                body: Container(
+                body: device != null ? Container(
                     padding: EdgeInsets.all(10),
                     child: Column(
                         children: <Widget>[
@@ -100,7 +87,7 @@ class BluetoothDeviceScreen extends StatelessWidget {
                             ),
                         ],
                     )
-                ),
+                ) : Container()
             ),
         );
     }
