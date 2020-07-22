@@ -34,7 +34,8 @@ public class SwiftFlutterAmazonFreeRTOSPlugin: NSObject, FlutterPlugin {
                 "writeCharacteristic": plugin.writeCharacteristic,
                 "setNotification": plugin.setNotification,
                 "getMtu": plugin.getMtu,
-                "setMtu": plugin.setMtu
+                "setMtu": plugin.setMtu,
+                "attachPrincipalPolicy": plugin.attachPrincipalPolicy
             ]
         )
 
