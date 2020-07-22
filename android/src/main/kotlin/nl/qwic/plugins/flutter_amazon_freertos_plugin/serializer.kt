@@ -1,9 +1,6 @@
 package nl.qwic.plugins.flutter_amazon_freertos_plugin
 
-import android.bluetooth.BluetoothAdapter
-import android.bluetooth.BluetoothDevice
-import android.bluetooth.BluetoothGattCharacteristic
-import android.bluetooth.BluetoothGattService
+import android.bluetooth.*
 
 inline fun <reified T> Any?.tryCast(block: T.() -> Unit) {
     if (this is T) {
@@ -83,27 +80,27 @@ fun dumpCharacteristicProperties(characteristic: BluetoothGattCharacteristic): M
 fun dumpServiceCharacteristics(service: BluetoothGattService, deviceUUID: String): List<Map<String, Any>> {
     val result = mutableListOf<MutableMap<String, Any>>();
     service.characteristics.forEach() {
-       result.add(
-           mutableMapOf(
-               "uuid" to it.uuid.toString(),
-               "isNotifying" to (it.properties and BluetoothGattCharacteristic.PROPERTY_NOTIFY != 0),
-               "value" to it.value,
-               "serviceUUID" to it.service.uuid.toString(),
-               "deviceUUID" to deviceUUID,
-               "properties" to dumpCharacteristicProperties(it)
-           )
-       )
+        result.add(
+            mutableMapOf(
+                "uuid" to it.uuid.toString(),
+                "isNotifying" to (it.properties and BluetoothGattCharacteristic.PROPERTY_NOTIFY != 0),
+                "value" to it.value,
+                "serviceUUID" to it.service.uuid.toString(),
+                "deviceUUID" to deviceUUID,
+                "properties" to dumpCharacteristicProperties(it)
+            )
+        )
     }
     return result;
 }
 
 fun dumpFreeRTOSDeviceServiceInfo(service: BluetoothGattService, deviceUUID: String): Map<String, Any> {
     val primaryServiceMap: MutableMap<String, Any> = mutableMapOf(
-            "uuid" to service.uuid.toString(),
-            "isPrimary" to (service.type and BluetoothGattService.SERVICE_TYPE_PRIMARY != 0),
-            "deviceUUID" to deviceUUID,
-            "characteristics" to dumpServiceCharacteristics(service, deviceUUID),
-            "includedServices" to mutableListOf<Any>()
+        "uuid" to service.uuid.toString(),
+        "isPrimary" to (service.type and BluetoothGattService.SERVICE_TYPE_PRIMARY != 0),
+        "deviceUUID" to deviceUUID,
+        "characteristics" to dumpServiceCharacteristics(service, deviceUUID),
+        "includedServices" to mutableListOf<Any>()
     )
     val includedServiceList = mutableListOf<Any>();
     val includedServices: Any = service.includedServices ?: primaryServiceMap

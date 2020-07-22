@@ -21,6 +21,12 @@ class BluetoothServiceScreen extends StatelessWidget {
         FreeRTOSDevice device = bluetoothStore.connectedDevices[service.deviceUUID];
         List characteristics = service.characteristics;
 
+         _readCharacteristic(BluetoothCharacteristic characteristic) async {            
+            var test = await characteristic.readValue();                 
+            // TODO: needs to be decoded
+            return test.toString();
+        }
+
         return Observer(name: "BluetoothScreen",
             builder: (_) => Scaffold(
                 appBar: AppBar(
@@ -36,17 +42,20 @@ class BluetoothServiceScreen extends StatelessWidget {
                                 child: Container(
                                     child: ListView.builder(
                                             itemCount: characteristics.length,
-                                            itemBuilder: (context, index) {
-                                                return Container(
-                                                        height: 100,
+                                            itemBuilder: (context, index) {                                               
+                                                return Padding(
+                                                    padding: const EdgeInsets.all(16.0),
+                                                    child: Container(                                                        
                                                         child: Column(
                                                             crossAxisAlignment: CrossAxisAlignment.start,
                                                             children: <Widget>[
                                                                 Text("Id: ${characteristics[index].uuid}"),
-                                                                Text("isNotifying: ${characteristics[index].isNotifying}"),
+                                                                Text("isNotifying: ${characteristics[index].isNotifying}"),                                                                
+                                                                OutlineButton(child: Text("Read value (see logs)"), onPressed: () async => print("Value: ${await _readCharacteristic(characteristics[index])}")),                                                                
                                                             ]
                                                         )
-                                                    );
+                                                    ),
+                                                );
                                             }
                                     )
                                 ),
