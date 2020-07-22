@@ -32,7 +32,7 @@ class FreeRTOSBluetooth: NSObject {
     }
 
     func bluetoothState(call: FlutterMethodCall, result: @escaping FlutterResult) {
-        let state = dumpBluetoothState(amazonFreeRTOSManager.central?.state ?? CBManagerState.unknown)
+        let state = dumpBluetoothState(self.central?.state ?? CBManagerState.unknown)
         result(state)
     }
     
@@ -162,6 +162,10 @@ class FreeRTOSBluetooth: NSObject {
     }
 
     func setMtu(call: FlutterMethodCall, result: @escaping FlutterResult) {
+        result(FlutterMethodNotImplemented)
+    }
+    
+    func setNotify(call: FlutterMethodCall, result: @escaping FlutterResult) {
         result(FlutterMethodNotImplemented)
     }
     
