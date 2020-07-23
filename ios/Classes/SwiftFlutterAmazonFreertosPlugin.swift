@@ -30,6 +30,8 @@ public class SwiftFlutterAmazonFreeRTOSPlugin: NSObject, FlutterPlugin {
                 "discoverServices": plugin.discoverServices,
                 "discoverServicesOnListen": plugin.discoverServicesOnListen,
                 "discoverServicesOnCancel": plugin.discoverServicesOnCancel,
+                "readCharacteristicOnListen": plugin.readCharacteristicOnListen,
+                "readCharacteristicOnCancel": plugin.readCharacteristicOnCancel,
                 "writeDescriptor": plugin.writeDescriptor,
                 "writeCharacteristic": plugin.writeCharacteristic,
                 "setNotification": plugin.setNotification,

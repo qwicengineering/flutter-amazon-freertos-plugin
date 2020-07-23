@@ -10,6 +10,8 @@ enum FreeRTOSBluetoothError: Error {
     case deviceNotFound
     case deviceNotConnected
     case emptyCustomServiceArguments
+    case invalidCharacteristic
+    case internalError
 }
 /**
  FreeRTOSBluetooth: Main class to manage device connections
@@ -121,7 +123,7 @@ class FreeRTOSBluetooth: NSObject {
         for observer in observers {
             NotificationCenter.default.removeObserver(observer)
         }
-        debugPrint("[FreeRTOSBluetoothConnect] discoverServicesOnCancel id: \(id)")
+        debugPrint("[FreeRTOSBluetooth] discoverServicesOnCancel id: \(id)")
     }
     
     func readDescriptor(call: FlutterMethodCall, result: @escaping FlutterResult) {
@@ -130,6 +132,40 @@ class FreeRTOSBluetooth: NSObject {
 
     func writeDescriptor(call: FlutterMethodCall, result: @escaping FlutterResult) {
         result(FlutterMethodNotImplemented)
+    }
+    
+    func readCharacteristicOnListen(id: Int, args: Any?, sink: @escaping FlutterEventSink) throws {
+        let map = args as! [String: Any?]
+        let deviceUUIDString = map["deviceUUID"] as! String
+        let serviceUUIDString = map["serviceUUID"] as! String
+        let characteristicUUIDString = map["characteristicUUID"] as! String
+        
+        guard let device = getAmazonFreeRTOSDevice(uuidString: deviceUUIDString) else {
+            debugPrint("[FreeRTOSBluetooth] cannot find local peripheral reference")
+            throw FreeRTOSBluetoothError.deviceNotFound
+        }
+        
+        guard let peripheral = connectedPeripherals[device.peripheral.identifier], peripheral.state == .connected else {
+            debugPrint("[FreeRTOSBluetooth] cannot find local peripheral reference")
+            throw FreeRTOSBluetoothError.deviceNotFound
+        }
+        
+        guard let characteristic = peripheral.serviceOf(uuid: CBUUID(string: serviceUUIDString))?.characteristicOf(uuid: CBUUID(string: characteristicUUIDString)), characteristic.properties.contains([.read]) else {
+            debugPrint("[FreeRTOSBluetooth] invalid call to read characteristic")
+            throw FreeRTOSBluetoothError.invalidCharacteristic
+        }
+        
+        sink(characteristic.value)
+        
+        DispatchQueue.main.async {
+            sink(FlutterEndOfEventStream)
+        }
+        
+        // peripheral.readValue(for: characteristic)
+    }
+    
+    func readCharacteristicOnCancel(id: Int, args: Any?) {
+        debugPrint("[FreeRTOSBluetooth] readCharacteristicsOnCancel id: \(id)")
     }
 
     func writeCharacteristic(call: FlutterMethodCall, result: @escaping FlutterResult) {
@@ -235,7 +271,7 @@ extension FreeRTOSBluetooth {
             throw FreeRTOSBluetoothError.deviceNotConnected
         }
         central?.cancelPeripheralConnection(peripheral)
-//        connectedPeripherals.removeValue(forKey: peripheral.identifier)
+        connectedPeripherals.removeValue(forKey: peripheral.identifier)
     }
     
     // Helper functions
@@ -288,6 +324,9 @@ extension FreeRTOSBluetooth: CBPeripheralDelegate {
             // peripheral.setNotifyValue(true, for: characteristic)
             // TODO: Add descriptors
             // peripheral.discoverDescriptors(for: characteristic)
+            if (characteristic.properties.contains([.read])) {
+                peripheral.readValue(for: characteristic)
+            }
         }
         
         NotificationCenter.default.post(name: .flutterFreeRTOSPeripheralDidDiscoverCharacteristics, object: nil, userInfo: ["service": service, "peripheral": peripheral])
