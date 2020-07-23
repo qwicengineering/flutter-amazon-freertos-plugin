@@ -161,7 +161,6 @@ class FreeRTOSBluetooth: NSObject {
             sink(FlutterEndOfEventStream)
         }
         
-        // peripheral.readValue(for: characteristic)
     }
     
     func readCharacteristicOnCancel(id: Int, args: Any?) {
