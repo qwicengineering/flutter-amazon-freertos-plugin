@@ -38,7 +38,7 @@ func dumpServiceCharacteristics(_ service: CBService) -> [[String: Any]] {
     for c in service.characteristics ?? [] {
         result.append([
             "uuid": c.uuid.uuidString,
-            "isNotifying": c.isNotifying,
+            "isNotifying": c.properties.contains([.notify]),
             "value": c.value,
             "serviceUUID": c.service.uuid.uuidString,
             "deviceUUID": c.service.peripheral.identifier.uuidString,
@@ -51,15 +51,15 @@ func dumpServiceCharacteristics(_ service: CBService) -> [[String: Any]] {
 func dumpCharacteristicProperties(_ charactertistic: CBCharacteristic) -> [String: Bool] {
     let properties = charactertistic.properties
     return [
-        "isReadable": properties.contains(.read),
-        "isWritableWithoutResponse": properties.contains(.writeWithoutResponse),
-        "isWritable": properties.contains(.write),
-        "isNotifying": properties.contains(.notify),
-        "isIndicatable": properties.contains(.indicate),
-        "allowsSignedWrites": properties.contains(.authenticatedSignedWrites),
-        "hasExtendedProperties": properties.contains(.extendedProperties),
-        "notifyEncryptionRequired": properties.contains(.notifyEncryptionRequired),
-        "indicateEncryptionRequired": properties.contains(.indicateEncryptionRequired)
+        "isReadable": properties.contains([.read]),
+        "isWritableWithoutResponse": properties.contains([.writeWithoutResponse]),
+        "isWritable": properties.contains([.write]),
+        "isNotifying": properties.contains([.notify]),
+        "isIndicatable": properties.contains([.indicate]),
+        "allowsSignedWrites": properties.contains([.authenticatedSignedWrites]),
+        "hasExtendedProperties": properties.contains([.extendedProperties]),
+        "notifyEncryptionRequired": properties.contains([.notifyEncryptionRequired]),
+        "indicateEncryptionRequired": properties.contains([.indicateEncryptionRequired])
     ]
 }
 
