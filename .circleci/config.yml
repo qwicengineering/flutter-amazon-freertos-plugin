@@ -1,0 +1,22 @@
+version: 2.1
+
+jobs:
+  dart_lint:
+    description: "Run static analysis for Flutter"
+    docker:
+      - image: cirrusci/flutter:1.17.3
+    steps:
+      - checkout
+      - run: flutter doctor
+      - run: flutter packages get
+      - run: flutter analyze
+
+workflows:
+  version: 2
+  test_and_lint_pr:
+    jobs:
+      - dart_lint:
+          filters:
+            branches:
+              ignore:
+                - master

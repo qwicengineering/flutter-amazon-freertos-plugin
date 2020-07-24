@@ -1,5 +1,3 @@
-import "dart:typed_data";
-
 import "package:flutter/material.dart";
 import "package:flutter_amazon_freertos_plugin_example/stores/bluetooth/bluetooth.store.dart";
 import "package:flutter_mobx/flutter_mobx.dart";
@@ -21,25 +19,7 @@ class BluetoothDeviceScreen extends StatelessWidget {
             Navigator.pop(context);
         }
 
-        List<BluetoothService> services = bluetoothStore.services;
-
-        // TODO: This used to work with AWS demo
-        void _writeToCharacteristic(int value) {    
-            // start counter = 0
-            // stop counter = 1
-            // reset counter = 2
-            // var services = await device.discoverServices();
-            var characteristics = services.firstWhere((service) => service.uuid.toString().toLowerCase() == bluetoothStore.demoService).characteristics;
-            if (characteristics.length < 0) {
-                print("No characteristics found");
-                return;
-            }
-
-            BluetoothCharacteristic customChar = characteristics.firstWhere((c) => c.uuid.toString().toLowerCase() == bluetoothStore.demoWrite);
-            customChar.writeValue(Uint8List.fromList([value]));
-        }
-
-        void _disconnect() async {            
+        void _disconnect() async {
             await bluetoothStore.disconnect(uuid: device.uuid);
             Navigator.pushNamed(context, "/bluetoothDevices");
         }
