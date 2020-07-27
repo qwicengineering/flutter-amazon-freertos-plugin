@@ -2,9 +2,14 @@
 
 Flutter plugin wrapper for amazon freertos ios and android sdk
 
-## Development
+## EXPIREMENTAL
 
 This library is being actively developed by the QWIC team. It is meant for internal experimentation with amazon freertos devices
+
+## SDKs
+
+- [Amazon iOS FreeRTOS](https://github.com/aws/amazon-freertos-ble-ios-sdk)
+- [Amazon android FreeRTOS](https://github.com/aws/amazon-freertos-ble-android-sdk)
 
 ## Usuage
 
@@ -39,7 +44,7 @@ amazonFreeRTOSPlugin.startScanForDevices()
 
 // Scan for devices with custom service UUIDs
 // args: List<string> serviceUUIDS
-amazonFreeRTOSPlugin.startScanForDevices(["c6f2d9e3-49e7-4125-9014-bfc6d669ff00"])
+amazonFreeRTOSPlugin.startScanForDevices(["c6f2d9e3-49e7-4125-9014-xxxxxx"])
 ```
 
 ### Get discovered devices
@@ -60,7 +65,7 @@ amazonFreeRTOSPlugin.rescanForDevices();
 
 // rescan will clear the device list and start rescan of the devices with custom service UUIDS
 // args: List<string> serviceUUIDS
-amazonFreeRTOSPlugin.rescanForDevices(["c6f2d9e3-49e7-4125-9014-bfc6d669ff00"]);
+amazonFreeRTOSPlugin.rescanForDevices();
 ```
 
 ### Connect / disconnect to device
@@ -74,7 +79,7 @@ await device.connect();
 // observe device state
 final deviceStateListener = device.observeState().listen((state) {
 	if (state == FreeRTOSDeviceState.CONNECTED) {
-		// after connect logic
+		// discover custom services
 	}
 })
 
@@ -87,12 +92,21 @@ await device.disconnect();
 ### Get device services / characteristics
 
 ```dart
-List<BluetoothService> services = await device.discoverServices();
+await device.discoverServices(serviceUUIDS: ["c6f2d9e3-49e7-4125-9014-xxxxxxxx"]);
+List services = await device.services();
+List<BluetoothCharacteristic> characteristics = services[0].characteristics;
+```
 
-// This will retreive all services inluding FreeRTOS services such as DeviceInfo and MQTT Proxy
-// Filter the list to your custom service
-BlutoothService customService = services.filter(service == "c6f2d9e3-49e7-4125-9014-bfc6d669ff00");
-List<BluetoothCharacteristic> characteristics = customService.characteristics
+### Read characteristics
+
+```dart
+// WIP
+```
+
+## Listen to notifications
+
+```dart
+// WIP
 ```
 
 ### Write characteristics
@@ -109,27 +123,27 @@ Duplicate `example/android/app/src/main/res/raw/awscredentials_template.json` fi
 
 ```json
 {
-	"UserAgent": "MobileHub/1.0",
-	"Version": "1.0",
-	"CredentialsProvider": {
-		"CognitoIdentity": {
-			"Default": {
-				"PoolId": "Federated Identities -> Edit identity pool -> Identity pool ID. (eg. us-west-2:fc4d19b1-873f-44d8-bdcf-3a8e7aabf3ea)",
-				"Region": "Your Region. (eg. us-east-1)"
-			}
-		}
-	},
-	"IdentityManager": {
-		"Default": {}
-	},
-	"CognitoUserPool": {
-		"Default": {
-			"PoolId": "UserPool -> General settings -> Pool Id. (eg. us-east-1_example)",
-			"AppClientId": "UserPool -> General settings -> App clients -> Show Details. (eg. 3tcegaot7efa8abgn1fxnebq5)",
-			"AppClientSecret": "UserPool -> General settings -> App clients -> Show Details. (eg. dse11rx91vs1t9600uacc0ssw1byju8em3k60271n748s26ts9l)",
-			"Region": "Your Region. (eg. us-east-1)"
-		}
-	}
+  "UserAgent": "MobileHub/1.0",
+  "Version": "1.0",
+  "CredentialsProvider": {
+    "CognitoIdentity": {
+      "Default": {
+        "PoolId": "Federated Identities -> Edit identity pool -> Identity pool ID. (eg. us-west-2:fc4d19b1-873f-44d8-bdcf-3a8e7aabf3ea)",
+        "Region": "Your Region. (eg. us-east-1)"
+      }
+    }
+  },
+  "IdentityManager": {
+    "Default": {}
+  },
+  "CognitoUserPool": {
+    "Default": {
+      "PoolId": "UserPool -> General settings -> Pool Id. (eg. us-east-1_example)",
+      "AppClientId": "UserPool -> General settings -> App clients -> Show Details. (eg. 3tcegaot7efa8abgn1fxnebq5)",
+      "AppClientSecret": "UserPool -> General settings -> App clients -> Show Details. (eg. dse11rx91vs1t9600uacc0ssw1byju8em3k60271n748s26ts9l)",
+      "Region": "Your Region. (eg. us-east-1)"
+    }
+  }
 }
 ```
 
