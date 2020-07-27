@@ -204,7 +204,7 @@ abstract class _BluetoothStore with Store {
 
     @action
     attachPolicy() async {
-        amazonFreeRTOSPlugin.attachPolicyAndroid(policyName: "policyName", awsRegion: "eu-west-1");
+        amazonFreeRTOSPlugin.attachPrincipalPolicy(policyName: "IoT_ESP_AuthPolicy", awsRegion: AWSRegionType.EUWEST1);
     }
 
     // AmazonFreeRTOS GATT Server Demo

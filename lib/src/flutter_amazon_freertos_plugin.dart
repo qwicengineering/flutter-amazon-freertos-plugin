@@ -59,16 +59,10 @@ class FlutterAmazonFreeRTOSPlugin {
             return FreeRTOSDevice.fromJson(device);
         }));
     }
-
-
-    // IOS Only
+    
     // Attaches IOT policy to a cognito user
     Future<void> attachPrincipalPolicy({ String policyName, AWSRegionType awsRegion }) async {
-        await channel.invokeMethod("attachPrinicipalPolicy", { "policyName": policyName, awsRegion: awsRegion });
-    }
-
-    Future<void> attachPolicyAndroid({ String policyName, String awsRegion }) async {
-        await channel.invokeMethod("attachPrinicipalPolicy", { "policyName": policyName, awsRegion: awsRegion });
+        await channel.invokeMethod("attachPrincipalPolicy", { "policyName": policyName, "awsRegion": awsRegion.index });
     }
 
 }
