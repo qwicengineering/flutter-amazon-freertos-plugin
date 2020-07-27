@@ -60,7 +60,8 @@ class BluetoothDeviceScreen extends StatelessWidget {
                             Row(
                                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                                 children: <Widget>[
-                                    OutlineButton(child: Text("services"), onPressed: () => bluetoothStore.getServices(device),),
+                                    OutlineButton(child: Text("services"), onPressed: () => bluetoothStore.getServices(device)),
+                                    OutlineButton(child: Text("attach policy"), onPressed: () => bluetoothStore.attachPolicy()),
                                     OutlineButton(child: Text("disconnect"), onPressed: _disconnect)
                                 ],
                             ),

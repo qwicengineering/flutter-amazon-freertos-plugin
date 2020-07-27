@@ -67,4 +67,8 @@ class FlutterAmazonFreeRTOSPlugin {
         await channel.invokeMethod("attachPrinicipalPolicy", { "policyName": policyName, awsRegion: awsRegion });
     }
 
+    Future<void> attachPolicyAndroid({ String policyName, String awsRegion }) async {
+        await channel.invokeMethod("attachPrinicipalPolicy", { "policyName": policyName, awsRegion: awsRegion });
+    }
+
 }

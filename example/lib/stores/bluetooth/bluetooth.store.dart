@@ -72,7 +72,8 @@ abstract class _BluetoothStore with Store {
     void setBluetoothState(BluetoothState value) {
         bluetoothState = value;
     }
-
+    
+    @action
     Future<void> startScanning() async {
         try {
             // TODO: Permission validation should be in plugin side?
@@ -133,6 +134,7 @@ abstract class _BluetoothStore with Store {
         }
     }
 
+    @action
     Future<void> rescan() async {
         try {
             devicesNearby.clear();
@@ -148,6 +150,7 @@ abstract class _BluetoothStore with Store {
         }
     }
 
+    @action
     Future<void> getServices(FreeRTOSDevice device) async {
         try {
             services = ObservableList.of(await device.services());
@@ -156,6 +159,7 @@ abstract class _BluetoothStore with Store {
         }
     }
 
+    @action
     Future<void> connectDevice(FreeRTOSDevice device, BuildContext context) async {
         try {
             if(device != null) {
@@ -196,6 +200,11 @@ abstract class _BluetoothStore with Store {
         await _deviceStateSubscription.cancel();
         _deviceStateSubscription = null;
         isConnecting = false;
+    }
+
+    @action
+    attachPolicy() async {
+        amazonFreeRTOSPlugin.attachPolicyAndroid(policyName: "policyName", awsRegion: "eu-west-1");
     }
 
     // AmazonFreeRTOS GATT Server Demo
