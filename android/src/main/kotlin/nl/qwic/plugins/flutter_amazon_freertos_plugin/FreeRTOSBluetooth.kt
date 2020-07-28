@@ -14,6 +14,10 @@ import android.os.Looper
 import android.util.Log
 import com.amazonaws.auth.AWSCredentialsProvider
 import com.amazonaws.mobile.client.AWSMobileClient
+import com.amazonaws.regions.Region
+import com.amazonaws.regions.Regions
+import com.amazonaws.services.iot.AWSIotClient
+import com.amazonaws.services.iot.model.AttachPolicyRequest
 import io.flutter.plugin.common.EventChannel
 import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
@@ -269,6 +273,38 @@ class FreeRTOSBluetooth(context: Context) {
             result.success(null)
         } catch(error: Exception) {
             result.error("500", error.message, error)
+        }
+    }
+
+    /*
+        Run in the terminal the following command to list your user policies:
+        > aws iot list-attached-policies --target <AWSMobileClient.getInstance().identityId>
+     */
+    fun attachPrincipalPolicy(call: MethodCall, result: MethodChannel.Result) {
+        try {
+            val policyName = call.argument<String>("policyName")
+            var awsRegion = call.argument<Int>("awsRegion")
+
+            if(policyName == null || policyName == "") {
+                result.error("500", "Policy Name not provided", "policyName should be sent");
+                return;
+            }
+            if(awsRegion == null) {
+                awsRegion = 0;
+            }
+
+            val region = dumAWSRegion(awsRegion);
+
+            val attachPolicy = AttachPolicyRequest();
+            attachPolicy.policyName = policyName;
+            attachPolicy.target = AWSMobileClient.getInstance().identityId;
+            val awsIoTClient = AWSIotClient(AWSMobileClient.getInstance());
+            awsIoTClient.setRegion(Region.getRegion(region));
+            awsIoTClient.attachPolicy(attachPolicy);
+            result.success(true);
+        } catch (error: Exception) {
+            Log.e(TAG, error.printStackTrace().toString());
+            result.error("500", error.message, error);
         }
     }
 
