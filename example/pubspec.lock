@@ -203,7 +203,7 @@ packages:
     source: path
     version: "0.0.1"
   flutter_cognito_plugin:
-    dependency: "direct dev"
+    dependency: "direct main"
     description:
       name: flutter_cognito_plugin
       url: "https://pub.dartlang.org"
